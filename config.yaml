@@ -1,0 +1,44 @@
+db:
+  driver: ${DB_DRIVER}
+  host: ${DB_HOST}
+  port: ${DB_PORT}
+  user: ${DB_USER}
+  password: ${DB_PASS}
+  name: ${DB_NAME}
+handler:
+  path: ./handlers
+  prefix: /api
+  versions:
+    v1:
+      prefix: /v1
+      routes:
+        article:
+          create: 
+            method: POST
+            path: /articles
+            handler: article.Create
+          get:
+            method: GET
+            path: /articles/:id
+            handler: article.Get
+          update:
+            method: PUT
+            path: /articles/:id
+            handler: article.Update
+          delete:
+            method: DELETE
+            path: /articles/:id
+            handler: article.Delete
+        user:
+          create:
+            method: POST
+            path: /users
+            handler: user.Create
+models:
+  - article
+  - user
+  - auth
+repositories:
+  - article
+  - user
+  - auth

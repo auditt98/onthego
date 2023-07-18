@@ -8,12 +8,12 @@ import (
 	"strings"
 	"time"
 
-	"github.com/Massad/gin-boilerplate/db"
+	"github.com/auditt98/onthego/db"
 	jwt "github.com/golang-jwt/jwt/v4"
 	uuid "github.com/google/uuid"
 )
 
-//TokenDetails ...
+// TokenDetails ...
 type TokenDetails struct {
 	AccessToken  string
 	RefreshToken string
@@ -23,23 +23,23 @@ type TokenDetails struct {
 	RtExpires    int64
 }
 
-//AccessDetails ...
+// AccessDetails ...
 type AccessDetails struct {
 	AccessUUID string
 	UserID     int64
 }
 
-//Token ...
+// Token ...
 type Token struct {
 	AccessToken  string `json:"access_token"`
 	RefreshToken string `json:"refresh_token"`
 }
 
-//AuthModel ...
+// AuthModel ...
 type AuthModel struct{}
 
-//CreateToken ...
-func (m AuthModel) CreateToken(userID int64) (*TokenDetails, error) {
+// CreateToken ...
+func (m AuthModel) CreateToken(userID uint) (*TokenDetails, error) {
 
 	td := &TokenDetails{}
 	td.AtExpires = time.Now().Add(time.Minute * 15).Unix()
@@ -74,8 +74,8 @@ func (m AuthModel) CreateToken(userID int64) (*TokenDetails, error) {
 	return td, nil
 }
 
-//CreateAuth ...
-func (m AuthModel) CreateAuth(userid int64, td *TokenDetails) error {
+// CreateAuth ...
+func (m AuthModel) CreateAuth(userid uint, td *TokenDetails) error {
 	at := time.Unix(td.AtExpires, 0) //converting Unix to UTC(to Time object)
 	rt := time.Unix(td.RtExpires, 0)
 	now := time.Now()
@@ -91,7 +91,7 @@ func (m AuthModel) CreateAuth(userid int64, td *TokenDetails) error {
 	return nil
 }
 
-//ExtractToken ...
+// ExtractToken ...
 func (m AuthModel) ExtractToken(r *http.Request) string {
 	bearToken := r.Header.Get("Authorization")
 	//normally Authorization the_token_xxx
@@ -102,7 +102,7 @@ func (m AuthModel) ExtractToken(r *http.Request) string {
 	return ""
 }
 
-//VerifyToken ...
+// VerifyToken ...
 func (m AuthModel) VerifyToken(r *http.Request) (*jwt.Token, error) {
 	tokenString := m.ExtractToken(r)
 	token, err := jwt.Parse(tokenString, func(token *jwt.Token) (interface{}, error) {
@@ -118,7 +118,7 @@ func (m AuthModel) VerifyToken(r *http.Request) (*jwt.Token, error) {
 	return token, nil
 }
 
-//TokenValid ...
+// TokenValid ...
 func (m AuthModel) TokenValid(r *http.Request) error {
 	token, err := m.VerifyToken(r)
 	if err != nil {
@@ -130,7 +130,7 @@ func (m AuthModel) TokenValid(r *http.Request) error {
 	return nil
 }
 
-//ExtractTokenMetadata ...
+// ExtractTokenMetadata ...
 func (m AuthModel) ExtractTokenMetadata(r *http.Request) (*AccessDetails, error) {
 	token, err := m.VerifyToken(r)
 	if err != nil {
@@ -154,17 +154,20 @@ func (m AuthModel) ExtractTokenMetadata(r *http.Request) (*AccessDetails, error)
 	return nil, err
 }
 
-//FetchAuth ...
-func (m AuthModel) FetchAuth(authD *AccessDetails) (int64, error) {
+// FetchAuth ...
+func (m AuthModel) FetchAuth(authD *AccessDetails) (uint, error) {
 	userid, err := db.GetRedis().Get(authD.AccessUUID).Result()
 	if err != nil {
 		return 0, err
 	}
-	userID, _ := strconv.ParseInt(userid, 10, 64)
-	return userID, nil
+	userID, _ := strconv.ParseInt(userid, 10, 64) //convert to int64
+	//convert to uint
+	userUintID := uint(userID)
+
+	return userUintID, nil
 }
 
-//DeleteAuth ...
+// DeleteAuth ...
 func (m AuthModel) DeleteAuth(givenUUID string) (int64, error) {
 	deleted, err := db.GetRedis().Del(givenUUID).Result()
 	if err != nil {

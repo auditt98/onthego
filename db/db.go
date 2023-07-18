@@ -6,56 +6,54 @@ import (
 	"log"
 	"os"
 
-	"github.com/go-gorp/gorp"
 	_redis "github.com/go-redis/redis/v7"
-	_ "github.com/lib/pq" //import postgres
+	"gorm.io/driver/mysql"
+	"gorm.io/driver/postgres"
+	"gorm.io/driver/sqlserver"
+	"gorm.io/gorm"
 )
 
-//DB ...
+// DB ...
 type DB struct {
 	*sql.DB
 }
 
-var db *gorp.DbMap
+var db *gorm.DB
 
-//Init ...
+// Init ...
 func Init() {
 
-	dbinfo := fmt.Sprintf("user=%s password=%s dbname=%s sslmode=disable", os.Getenv("DB_USER"), os.Getenv("DB_PASS"), os.Getenv("DB_NAME"))
-
-	var err error
-	db, err = ConnectDB(dbinfo)
+	db_instance, err := ResolveDB()
 	if err != nil {
 		log.Fatal(err)
 	}
-
+	db = db_instance
 }
 
-//ConnectDB ...
-func ConnectDB(dataSourceName string) (*gorp.DbMap, error) {
-	db, err := sql.Open("postgres", dataSourceName)
-	if err != nil {
-		return nil, err
+func ResolveDB() (*gorm.DB, error) {
+
+	switch os.Getenv("DB_DRIVER") {
+	case "mysql":
+		dsn := fmt.Sprintf("%s:%s@tcp(%s:%s)/%s?charset=utf8mb4&parseTime=True&loc=Local", os.Getenv("DB_USER"), os.Getenv("DB_PASS"), os.Getenv("DB_HOST"), os.Getenv("DB_PORT"), os.Getenv("DB_NAME")) //user, pass, host, port, dbname
+		db_instance, err := gorm.Open(mysql.Open(dsn), &gorm.Config{})
+		return db_instance, err
+	case "postgres":
+		dsn := fmt.Sprintf("user=%s password=%s host=%s port=%s dbname=%s sslmode=disable", os.Getenv("DB_USER"), os.Getenv("DB_PASS"), os.Getenv("DB_HOST"), os.Getenv("DB_PORT"), os.Getenv("DB_NAME"))
+		db_instance, err := gorm.Open(postgres.Open(dsn), &gorm.Config{})
+		return db_instance, err
+	case "mssql":
+		dsn := fmt.Sprintf("sqlserver://%s:%s@%s:%s?database=%s", os.Getenv("DB_USER"), os.Getenv("DB_PASS"), os.Getenv("DB_HOST"), os.Getenv("DB_PORT"), os.Getenv("DB_NAME"))
+		db_instance, err := gorm.Open(sqlserver.Open(dsn), &gorm.Config{})
+		return db_instance, err
+	default:
+		return nil, fmt.Errorf("DB_DRIVER not found")
 	}
-
-	if err = db.Ping(); err != nil {
-		return nil, err
-	}
-
-	dbmap := &gorp.DbMap{Db: db, Dialect: gorp.PostgresDialect{}}
-	//dbmap.TraceOn("[gorp]", log.New(os.Stdout, "golang-gin:", log.Lmicroseconds)) //Trace database requests
-	return dbmap, nil
 }
 
-//GetDB ...
-func GetDB() *gorp.DbMap {
-	return db
-}
-
-//RedisClient ...
+// RedisClient ...
 var RedisClient *_redis.Client
 
-//InitRedis ...
+// InitRedis ...
 func InitRedis(selectDB ...int) {
 
 	var redisHost = os.Getenv("REDIS_HOST")
@@ -79,7 +77,7 @@ func InitRedis(selectDB ...int) {
 
 }
 
-//GetRedis ...
+// GetRedis ...
 func GetRedis() *_redis.Client {
 	return RedisClient
 }

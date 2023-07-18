@@ -7,9 +7,10 @@ import (
 	"os"
 	"runtime"
 
-	"github.com/Massad/gin-boilerplate/controllers"
-	"github.com/Massad/gin-boilerplate/db"
-	"github.com/Massad/gin-boilerplate/forms"
+	"github.com/auditt98/onthego/db"
+	"github.com/auditt98/onthego/forms"
+	controllers "github.com/auditt98/onthego/handlers"
+
 	"github.com/gin-contrib/gzip"
 	uuid "github.com/google/uuid"
 	"github.com/joho/godotenv"
@@ -18,8 +19,8 @@ import (
 	"github.com/gin-gonic/gin/binding"
 )
 
-//CORSMiddleware ...
-//CORS (Cross-Origin Resource Sharing)
+// CORSMiddleware ...
+// CORS (Cross-Origin Resource Sharing)
 func CORSMiddleware() gin.HandlerFunc {
 	return func(c *gin.Context) {
 		c.Writer.Header().Set("Access-Control-Allow-Origin", "http://localhost")
@@ -38,8 +39,8 @@ func CORSMiddleware() gin.HandlerFunc {
 	}
 }
 
-//RequestIDMiddleware ...
-//Generate a unique ID and attach it to each request for future reference or use
+// RequestIDMiddleware ...
+// Generate a unique ID and attach it to each request for future reference or use
 func RequestIDMiddleware() gin.HandlerFunc {
 	return func(c *gin.Context) {
 		uuid := uuid.New()
@@ -50,8 +51,8 @@ func RequestIDMiddleware() gin.HandlerFunc {
 
 var auth = new(controllers.AuthController)
 
-//TokenAuthMiddleware ...
-//JWT Authentication middleware attached to each request that needs to be authenitcated to validate the access_token in the header
+// TokenAuthMiddleware ...
+// JWT Authentication middleware attached to each request that needs to be authenitcated to validate the access_token in the header
 func TokenAuthMiddleware() gin.HandlerFunc {
 	return func(c *gin.Context) {
 		auth.TokenValid(c)
@@ -59,11 +60,39 @@ func TokenAuthMiddleware() gin.HandlerFunc {
 	}
 }
 
-func main() {
-	//Load the .env file
+func LoadEnv() error {
 	err := godotenv.Load(".env")
 	if err != nil {
 		log.Fatal("error: failed to load the env file")
+	}
+
+	return nil
+}
+
+func LoadAPIVersions(r *gin.Engine) error {
+	config, err := LoadConf()
+	// config.Handler.Versions
+	for version, versionConfig := range config.Handler.Versions {
+		fmt.Println("Version:", version)
+		fmt.Println("Prefix:", versionConfig.Prefix)
+
+		for routeName, route := range versionConfig.Routes {
+			fmt.Println("Route:", routeName)
+			fmt.Println("Method:", route.Method)
+			fmt.Println("Path:", route.Path)
+			fmt.Println("Handler:", route.Handler)
+			fmt.Println()
+		}
+	}
+	return nil
+}
+
+func main() {
+	LoadEnv()
+	config, err := LoadConf()
+	if err != nil {
+		fmt.Println("Error loading config:", err)
+		return
 	}
 
 	if os.Getenv("ENV") == "PRODUCTION" {
@@ -80,7 +109,7 @@ func main() {
 	r.Use(RequestIDMiddleware())
 	r.Use(gzip.Gzip(gzip.DefaultCompression))
 
-	//Start PostgreSQL database
+	//Start database
 	//Example: db.GetDB() - More info in the models folder
 	db.Init()
 
@@ -88,30 +117,35 @@ func main() {
 	//Example: db.GetRedis().Set(KEY, VALUE, at.Sub(now)).Err()
 	db.InitRedis(1)
 
-	v1 := r.Group("/v1")
-	{
-		/*** START USER ***/
-		user := new(controllers.UserController)
+	LoadAPIVersions(r)
 
-		v1.POST("/user/login", user.Login)
-		v1.POST("/user/register", user.Register)
-		v1.GET("/user/logout", user.Logout)
+	// v1 := r.Group("/v1")
+	// {
+	/*** START USER ***/
+	// user := new(controllers.UserController)
 
-		/*** START AUTH ***/
-		auth := new(controllers.AuthController)
+	// v1.GET("/test")
 
-		//Refresh the token when needed to generate new access_token and refresh_token for the user
-		v1.POST("/token/refresh", auth.Refresh)
+	// v1.POST("/user/login", user.Login)
+	// v1.POST("/user/register", user.Register)
+	// v1.GET("/user/logout", user.Logout)
 
-		/*** START Article ***/
-		article := new(controllers.ArticleController)
+	// CUSTOM CODE
 
-		v1.POST("/article", TokenAuthMiddleware(), article.Create)
-		v1.GET("/articles", TokenAuthMiddleware(), article.All)
-		v1.GET("/article/:id", TokenAuthMiddleware(), article.One)
-		v1.PUT("/article/:id", TokenAuthMiddleware(), article.Update)
-		v1.DELETE("/article/:id", TokenAuthMiddleware(), article.Delete)
-	}
+	// auth := new(controllers.AuthController)
+
+	//Refresh the token when needed to generate new access_token and refresh_token for the user
+	// v1.POST("/token/refresh", auth.Refresh)
+
+	/*** START Article ***/
+	// article := new(controllers.ArticleController)
+
+	// v1.POST("/article", TokenAuthMiddleware(), article.Create)
+	// v1.GET("/articles", TokenAuthMiddleware(), article.All)
+	// v1.GET("/article/:id", TokenAuthMiddleware(), article.One)
+	// v1.PUT("/article/:id", TokenAuthMiddleware(), article.Update)
+	// v1.DELETE("/article/:id", TokenAuthMiddleware(), article.Delete)
+	// }
 
 	r.LoadHTMLGlob("./public/html/*")
 

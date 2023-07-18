@@ -1,8 +1,8 @@
 ![alt tag](https://upload.wikimedia.org/wikipedia/commons/2/23/Golang.png)
 
-[![License](https://img.shields.io/github/license/Massad/gin-boilerplate)](https://github.com/Massad/gin-boilerplate/blob/master/LICENSE) [![GitHub release (latest by date)](https://img.shields.io/github/v/release/Massad/gin-boilerplate)](https://github.com/Massad/gin-boilerplate/releases) [![Go Version](https://img.shields.io/github/go-mod/go-version/Massad/gin-boilerplate)](https://github.com/Massad/gin-boilerplate/blob/master/go.mod) [![DB Version](https://img.shields.io/badge/DB-PostgreSQL--latest-blue)](https://github.com/Massad/gin-boilerplate/blob/master/go.mod) [![DB Version](https://img.shields.io/badge/DB-Redis--latest-blue)](https://github.com/Massad/gin-boilerplate/blob/master/go.mod)
+[![License](https://img.shields.io/github/license/Massad/gin-boilerplate)](https://onthego/blob/master/LICENSE) [![GitHub release (latest by date)](https://img.shields.io/github/v/release/Massad/gin-boilerplate)](https://onthego/releases) [![Go Version](https://img.shields.io/github/go-mod/go-version/Massad/gin-boilerplate)](https://onthego/blob/master/go.mod) [![DB Version](https://img.shields.io/badge/DB-PostgreSQL--latest-blue)](https://onthego/blob/master/go.mod) [![DB Version](https://img.shields.io/badge/DB-Redis--latest-blue)](https://onthego/blob/master/go.mod)
 
-[![Build Status](https://travis-ci.org/Massad/gin-boilerplate.svg?branch=master)](https://travis-ci.org/Massad/gin-boilerplate) [![Go Report Card](https://goreportcard.com/badge/github.com/Massad/gin-boilerplate)](https://goreportcard.com/report/github.com/Massad/gin-boilerplate)
+[![Build Status](https://travis-ci.org/Massad/gin-boilerplate.svg?branch=master)](https://travis-ci.org/Massad/gin-boilerplate) [![Go Report Card](https://goreportcard.com/badge/onthego)](https://goreportcard.com/report/onthego)
 
 [![Join the chat at https://gitter.im/Massad/gin-boilerplate](https://badges.gitter.im/Massad/gin-boilerplate.svg)](https://gitter.im/Massad/gin-boilerplate?utm_source=badge&utm_medium=badge&utm_campaign=pr-badge&utm_content=badge)
 
@@ -28,11 +28,11 @@ The fastest way to deploy a restful api's with [Gin Framework](https://github.co
 ### Installation
 
 ```
-$ go get github.com/Massad/gin-boilerplate
+$ go get onthego
 ```
 
 ```
-$ cd $GOPATH/src/github.com/Massad/gin-boilerplate
+$ cd $GOPATH/src/onthego
 ```
 
 ```
@@ -42,6 +42,15 @@ $ go mod init
 ```
 $ go install
 ```
+
+### Database Driver
+You can select the database driver you want to use by changing the `DB_DRIVER` in the `.env` file
+
+```
+
+
+
+
 
 You will find the **database.sql** in `db/database.sql`
 
@@ -160,7 +169,7 @@ That's just an example, of course you can implement your own way.
 
     No longer supported
 
-You will find the last update on v1 in [v1-session-cookies-auth](https://github.com/Massad/gin-boilerplate/tree/v1-session-cookies-auth) branch or [v1.0.5 release](https://github.com/Massad/gin-boilerplate/releases/tag/1.05) that supported the authentication using the **session** and **cookies** stored in **Redis** if needed.
+You will find the last update on v1 in [v1-session-cookies-auth](https://onthego/tree/v1-session-cookies-auth) branch or [v1.0.5 release](https://onthego/releases/tag/1.05) that supported the authentication using the **session** and **cookies** stored in **Redis** if needed.
 
 - [RedisStore](https://github.com/gin-gonic/contrib/tree/master/sessions): Gin middleware for session management with multi-backend support (currently cookie, Redis).
 

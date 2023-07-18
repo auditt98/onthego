@@ -6,18 +6,19 @@ import (
 	"os"
 	"strconv"
 
-	"github.com/Massad/gin-boilerplate/forms"
-	"github.com/Massad/gin-boilerplate/models"
+	".github.com/auditt98/onthego/models"
+	"github.com/auditt98/onthego/forms"
+
 	"github.com/gin-gonic/gin"
 	jwt "github.com/golang-jwt/jwt/v4"
 )
 
-//AuthController ...
+// AuthController ...
 type AuthController struct{}
 
 var authModel = new(models.AuthModel)
 
-//TokenValid ...
+// TokenValid ...
 func (ctl AuthController) TokenValid(c *gin.Context) {
 
 	tokenAuth, err := authModel.ExtractTokenMetadata(c.Request)
@@ -38,7 +39,7 @@ func (ctl AuthController) TokenValid(c *gin.Context) {
 	c.Set("userID", userID)
 }
 
-//Refresh ...
+// Refresh ...
 func (ctl AuthController) Refresh(c *gin.Context) {
 	var tokenForm forms.Token
 
@@ -74,7 +75,8 @@ func (ctl AuthController) Refresh(c *gin.Context) {
 			c.JSON(http.StatusUnauthorized, gin.H{"message": "Invalid authorization, please login again"})
 			return
 		}
-		userID, err := strconv.ParseInt(fmt.Sprintf("%.f", claims["user_id"]), 10, 64)
+		userID, err := strconv.ParseInt(fmt.Sprintf("%.f", claims["user_id"]), 10, 0)
+		userUintID := uint(userID)
 		if err != nil {
 			c.JSON(http.StatusUnauthorized, gin.H{"message": "Invalid authorization, please login again"})
 			return
@@ -87,13 +89,13 @@ func (ctl AuthController) Refresh(c *gin.Context) {
 		}
 
 		//Create new pairs of refresh and access tokens
-		ts, createErr := authModel.CreateToken(userID)
+		ts, createErr := authModel.CreateToken(userUintID)
 		if createErr != nil {
 			c.JSON(http.StatusForbidden, gin.H{"message": "Invalid authorization, please login again"})
 			return
 		}
 		//save the tokens metadata to redis
-		saveErr := authModel.CreateAuth(userID, ts)
+		saveErr := authModel.CreateAuth(userUintID, ts)
 		if saveErr != nil {
 			c.JSON(http.StatusForbidden, gin.H{"message": "Invalid authorization, please login again"})
 			return
