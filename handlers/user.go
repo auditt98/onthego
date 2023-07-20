@@ -1,23 +1,15 @@
-package controllers
-
-import (
-	"github.com/auditt98/onthego/forms"
-	"github.com/auditt98/onthego/models"
-
-	"github.com/gin-gonic/gin"
-)
+package handlers
 
 // UserController ...
 type UserController struct{}
 
-var userModel = new(models.UserModel)
-var userForm = new(forms.UserForm)
+// var userModel = new(models.UserModel)
 
-// getUserID ...
-func getUserID(c *gin.Context) (userID uint) {
-	//MustGet returns the value for the given key if it exists, otherwise it panics.
-	return c.MustGet("userID").(uint)
-}
+// // getUserID ...
+// func getUserID(c *gin.Context) (userID uint) {
+// 	//MustGet returns the value for the given key if it exists, otherwise it panics.
+// 	return c.MustGet("userID").(uint)
+// }
 
 // //Login ...
 // func (ctrl UserController) Login(c *gin.Context) {

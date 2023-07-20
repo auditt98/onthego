@@ -1,11 +1,11 @@
 package db
 
 import (
-	"database/sql"
 	"fmt"
 	"log"
 	"os"
 
+	"github.com/auditt98/onthego/models"
 	_redis "github.com/go-redis/redis/v7"
 	"gorm.io/driver/mysql"
 	"gorm.io/driver/postgres"
@@ -14,11 +14,10 @@ import (
 )
 
 // DB ...
-type DB struct {
-	*sql.DB
-}
 
 var db *gorm.DB
+
+// var queryEngine *QueryEngine
 
 // Init ...
 func Init() {
@@ -28,6 +27,7 @@ func Init() {
 		log.Fatal(err)
 	}
 	db = db_instance
+	db.AutoMigrate(&models.Article{})
 }
 
 func ResolveDB() (*gorm.DB, error) {
@@ -50,6 +50,103 @@ func ResolveDB() (*gorm.DB, error) {
 	}
 }
 
+func query(modelName string) *QueryEngine {
+	queryEngine := new(QueryEngine)
+	modelType, ok := models.ModelMap[modelName]
+	if !ok {
+		log.Fatal("Model not found")
+	}
+	queryEngine.Ref = db.Model(modelType)
+	return queryEngine
+}
+
+// Pipeline for query: Filter -> Sort -> Paging -> Population -> Projection
+
+func (qe *QueryEngine) FindOne(params QueryParams) (interface{}, error) {
+
+	return nil, nil
+}
+
+func (qe *QueryEngine) FindMany(query interface{}, args ...interface{}) ([]interface{}, error) {
+	return nil, nil
+}
+
+func (qe *QueryEngine) FindWithCount(query interface{}, args ...interface{}) ([]interface{}, int64, error) {
+	return nil, 0, nil
+}
+
+func (qe *QueryEngine) Create(modelName string, data interface{}) (interface{}, error) {
+	return nil, nil
+}
+
+func (qe *QueryEngine) Update(modelName string, id uint, data interface{}) (interface{}, error) {
+	return nil, nil
+}
+
+func (qe *QueryEngine) Delete(modelName string, id uint) (interface{}, error) {
+	return nil, nil
+}
+
+func (qe *QueryEngine) Filter() *gorm.DB {
+	// SELECT * FROM ... where (everything inside and) AND (everything inside or) AND (everything inside not)
+	//
+
+	// Handle WhereParams
+	// type WhereParams struct {
+	// 	And  []WhereParams
+	// 	Or   []WhereParams
+	// 	Not  []interface{}
+	// 	Attr map[string]AttributeParams
+	// }
+
+	// var a = QueryParams{
+	// 	Where: WhereParams{
+	// 		Or: []WhereParams{
+	// 			{
+	// 				Attr: map[string]AttributeParams{
+	// 					"email": {
+	// 						Eq: "test",
+	// 					},
+	// 				},
+	// 			},
+	// 			{
+	// 				Attr: map[string]AttributeParams{
+	// 					"email": {
+	// 						Eq: "test",
+	// 					},
+	// 				},
+	// 			},
+	// 		},
+	// 		Attr: map[string]AttributeParams{
+	// 			"email": {
+	// 				Eq: "test",
+	// 			},
+	// 		},
+	// 	},
+	// }
+
+	// applies implicit AND to all attributes
+
+	return db
+}
+
+func (qe *QueryEngine) Sort() *gorm.DB {
+	return db
+}
+
+func (qe *QueryEngine) Paging() *gorm.DB {
+	return db
+}
+
+func (qe *QueryEngine) Population() *gorm.DB {
+	return db
+}
+
+func (qe *QueryEngine) Projection() *gorm.DB {
+	// db.whe
+	return db
+}
+
 // RedisClient ...
 var RedisClient *_redis.Client
 
@@ -58,7 +155,6 @@ func InitRedis(selectDB ...int) {
 
 	var redisHost = os.Getenv("REDIS_HOST")
 	var redisPassword = os.Getenv("REDIS_PASSWORD")
-
 	RedisClient = _redis.NewClient(&_redis.Options{
 		Addr:     redisHost,
 		Password: redisPassword,

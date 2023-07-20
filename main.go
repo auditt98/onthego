@@ -8,15 +8,13 @@ import (
 	"runtime"
 
 	"github.com/auditt98/onthego/db"
-	"github.com/auditt98/onthego/forms"
-	controllers "github.com/auditt98/onthego/handlers"
+	"github.com/auditt98/onthego/utils"
 
 	"github.com/gin-contrib/gzip"
 	uuid "github.com/google/uuid"
 	"github.com/joho/godotenv"
 
 	"github.com/gin-gonic/gin"
-	"github.com/gin-gonic/gin/binding"
 )
 
 // CORSMiddleware ...
@@ -49,13 +47,11 @@ func RequestIDMiddleware() gin.HandlerFunc {
 	}
 }
 
-var auth = new(controllers.AuthController)
-
 // TokenAuthMiddleware ...
 // JWT Authentication middleware attached to each request that needs to be authenitcated to validate the access_token in the header
 func TokenAuthMiddleware() gin.HandlerFunc {
 	return func(c *gin.Context) {
-		auth.TokenValid(c)
+		// auth.TokenValid(c)
 		c.Next()
 	}
 }
@@ -69,27 +65,9 @@ func LoadEnv() error {
 	return nil
 }
 
-func LoadAPIVersions(r *gin.Engine) error {
-	config, err := LoadConf()
-	// config.Handler.Versions
-	for version, versionConfig := range config.Handler.Versions {
-		fmt.Println("Version:", version)
-		fmt.Println("Prefix:", versionConfig.Prefix)
-
-		for routeName, route := range versionConfig.Routes {
-			fmt.Println("Route:", routeName)
-			fmt.Println("Method:", route.Method)
-			fmt.Println("Path:", route.Path)
-			fmt.Println("Handler:", route.Handler)
-			fmt.Println()
-		}
-	}
-	return nil
-}
-
 func main() {
 	LoadEnv()
-	config, err := LoadConf()
+	_, err := utils.LoadConf()
 	if err != nil {
 		fmt.Println("Error loading config:", err)
 		return
@@ -103,7 +81,7 @@ func main() {
 	r := gin.Default()
 
 	//Custom form validator
-	binding.Validator = new(forms.DefaultValidator)
+	// binding.Validator = new(forms.DefaultValidator)
 
 	r.Use(CORSMiddleware())
 	r.Use(RequestIDMiddleware())
@@ -117,12 +95,21 @@ func main() {
 	//Example: db.GetRedis().Set(KEY, VALUE, at.Sub(now)).Err()
 	db.InitRedis(1)
 
-	LoadAPIVersions(r)
+	// generators.LoadAPIVersions(r)
+
+	//generator: Router
+
+	//endgenerator: Router
+
+	// v1 := r.Group("/v1")
+	// {
+	//generator: Handler
+	// }
 
 	// v1 := r.Group("/v1")
 	// {
 	/*** START USER ***/
-	// user := new(controllers.UserController)
+	// user := new(handlers.UserController)
 
 	// v1.GET("/test")
 
@@ -132,7 +119,7 @@ func main() {
 
 	// CUSTOM CODE
 
-	// auth := new(controllers.AuthController)
+	// auth := new(handlers.AuthController)
 
 	//Refresh the token when needed to generate new access_token and refresh_token for the user
 	// v1.POST("/token/refresh", auth.Refresh)

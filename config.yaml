@@ -13,32 +13,37 @@ handler:
       prefix: /v1
       routes:
         article:
-          create: 
-            method: POST
-            path: /articles
-            handler: article.Create
-          get:
-            method: GET
-            path: /articles/:id
-            handler: article.Get
-          update:
-            method: PUT
-            path: /articles/:id
-            handler: article.Update
-          delete:
-            method: DELETE
-            path: /articles/:id
-            handler: article.Delete
-        user:
-          create:
-            method: POST
-            path: /users
-            handler: user.Create
-models:
-  - article
-  - user
-  - auth
-repositories:
-  - article
-  - user
-  - auth
+          prefix: /articles
+          actions:
+            create: 
+              method: POST
+              path: /
+              handler: Create
+            get:
+              method: GET
+              path: /:id
+              handler: Get
+            update:
+              method: PUT
+              path: /:id
+              handler: Update
+            delete:
+              method: DELETE
+              path: /:id
+              handler: Delete
+          user:
+            prefix: /users
+            create:
+              method: POST
+              path: /users
+              handler: Create
+    v2:
+      prefix: /v2
+      routes:
+        article:
+          prefix: /articles
+          actions:
+            create: 
+              method: POST
+              path: /
+              handler: Create

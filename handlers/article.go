@@ -1,16 +1,9 @@
-package controllers
-
-import (
-	"github.com/auditt98/onthego/forms"
-	"github.com/auditt98/onthego/models"
-)
+package handlers
 
 // ArticleController ...
 type ArticleController struct{}
 
-var articleModel = new(models.ArticleModel)
-var articleForm = new(forms.ArticleForm)
-
+// var articleModel = new(models.ArticleModel)
 // //Create ...
 // func (ctrl ArticleController) Create(c *gin.Context) {
 // 	userID := getUserID(c)
