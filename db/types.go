@@ -7,12 +7,6 @@ import (
 )
 
 type QueryEngine struct {
-	// FindOne       func(params QueryParams) (interface{}, error)
-	// FindMany      func(params QueryParams) ([]interface{}, error)
-	// FindWithCount func(params QueryParams) ([]interface{}, int64, error)
-	// Create        func(modelName string, data interface{}) (interface{}, error)
-	// Update        func(modelName string, id uint, data interface{}) (interface{}, error)
-	// Delete        func(modelName string, id uint) (interface{}, error)
 	Ref *gorm.DB
 }
 
@@ -50,32 +44,5 @@ type AttributeParams struct {
 type WhereParams struct {
 	And  []WhereParams
 	Or   []WhereParams
-	Not  []interface{}
 	Attr map[string]AttributeParams
 }
-
-// var a = QueryParams{
-// 	Where: WhereParams{
-// 		Or: []WhereParams{
-// 			{
-// 				Attr: map[string]AttributeParams{
-// 					"email": {
-// 						Eq: "test",
-// 					},
-// 				},
-// 			},
-// 			{
-// 				Attr: map[string]AttributeParams{
-// 					"email": {
-// 						Eq: "test",
-// 					},
-// 				},
-// 			},
-// 		},
-// 		Attr: map[string]AttributeParams{
-// 			"email": {
-// 				Eq: "test",
-// 			},
-// 		},
-// 	},
-// }

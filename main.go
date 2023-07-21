@@ -8,6 +8,7 @@ import (
 	"runtime"
 
 	"github.com/auditt98/onthego/db"
+	"github.com/auditt98/onthego/models"
 	"github.com/auditt98/onthego/utils"
 
 	"github.com/gin-contrib/gzip"
@@ -95,6 +96,30 @@ func main() {
 	//Example: db.GetRedis().Set(KEY, VALUE, at.Sub(now)).Err()
 	db.InitRedis(1)
 
+	params := db.QueryParams{
+		Where: db.WhereParams{
+			Or: []db.WhereParams{
+				{
+					Attr: map[string]db.AttributeParams{
+						"id": {
+							Lt: "5",
+						},
+					},
+				},
+			},
+		},
+	}
+	// db.Query("user", params).Find(&results)
+	var users []models.User
+	db.Query("users", params, &users)
+	for _, user := range users {
+		fmt.Println("----------")
+		fmt.Println(user.ID)
+		fmt.Println(user.Email)
+		fmt.Println(user.Password)
+		fmt.Println(user.Name)
+
+	}
 	// generators.LoadAPIVersions(r)
 
 	//generator: Router
