@@ -1,13 +1,9 @@
 package handlers
 
-import (
-	"github.com/auditt98/onthego/models"
-)
-
 // AuthController ...
-type AuthController struct{}
+// type AuthController struct{}
 
-var authModel = new(models.AuthModel)
+// var authModel = new(models.AuthModel)
 
 // TokenValid ...
 // func (ctl AuthController) TokenValid(c *gin.Context) {

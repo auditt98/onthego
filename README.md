@@ -17,12 +17,19 @@ It provides a quick way to bootstrap your project with a predefined structure wi
 - Built-in **CORS Middleware**
 - Built-in **RequestID Middleware**
 - SSL Support
-- Enviroment support
+- Environment support
 - Unit test
 - And few other important utilties to kickstart any project
 - Drivers for a few databases built-in (Gorm drivers)
-- Built-in high level Query Engine on top of Gorm that provides selecting syntax similar to MongoDB
+- High level Query Engine on top of Gorm that provides selecting syntax similar to MongoDB (WIP)
+- Code Scaffolding (WIP)
+- Batteries included with [https://docs.rkdev.info/](RK-Boot)
 
+
+### On my TODO list
+- Finish implementing the Query Engine to support Projection, Population
+- Implementing OIDC authentication (Using Zitadel)
+- Dockerize
 
 ### Installation
 
@@ -71,25 +78,6 @@ To start the development of the project, run the following command:
   air
 ```
 
-
-Generate SSL certificates (Optional)
-
-> If you don't SSL now, change `SSL=TRUE` to `SSL=FALSE` in the `.env` file
-
-```
-$ mkdir cert/
-```
-
-```
-$ sh generate-certificate.sh
-```
-
-> Make sure to change the values in .env for your databases
-
-```
-$ go run *.go
-```
-
 ## Building Your Application
 
 ```
@@ -104,6 +92,35 @@ $ ./gin-boilerplate
 
 ```
 $ go test -v ./tests/*
+```
+
+## Using the Query Engine
+```
+params := db.QueryParams{
+	Where: db.WhereParams{
+		Or: []db.WhereParams{
+			{
+				Attr: map[string]db.AttributeParams{
+					"id": {
+						Eq: 2,
+					},
+				},
+			},
+		},
+	},
+	OrderBy: []string{"-id"},
+	Limit:   2,
+	Offset:  0,
+	Populate: []string{
+		"Articles",
+	},
+	Picks: []string{
+		"id",
+		"email",
+	},
+}
+var users []models.User
+db.Query("users", params, &users)
 ```
 
 ## Contribution

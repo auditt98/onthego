@@ -1,7 +1,7 @@
 package handlers
 
 // ArticleController ...
-type ArticleController struct{}
+// type ArticleController struct{}
 
 // var articleModel = new(models.ArticleModel)
 // //Create ...

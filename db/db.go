@@ -48,7 +48,7 @@ func Query(tableName string, params QueryParams, result interface{}) *gorm.DB {
 	instance, _ := ResolveDB()
 	queryEngine.TableName = tableName
 	queryEngine.Ref = instance.Table(tableName)
-	queryEngine.Ref = queryEngine.Populate(params).Filter(params).Sort(params).Paginate(params).ToGorm().Find(result)
+	queryEngine.Ref = queryEngine.Populate(params).Filter(params).Sort(params).Paginate(params).Projection(params).ToGorm().Find(result)
 	return queryEngine.Ref
 }
 

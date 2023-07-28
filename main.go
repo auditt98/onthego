@@ -1,17 +1,20 @@
 package main
 
 import (
+	"context"
+	_ "embed"
 	"fmt"
 	"log"
-	"net/http"
 	"os"
-	"runtime"
 
 	"github.com/auditt98/onthego/db"
-	"github.com/auditt98/onthego/models"
+	hv1 "github.com/auditt98/onthego/handlers/v1"
+	hv2 "github.com/auditt98/onthego/handlers/v2"
 	"github.com/auditt98/onthego/utils"
+	rkboot "github.com/rookie-ninja/rk-boot/v2"
+	rkgin "github.com/rookie-ninja/rk-gin/v2/boot"
+	rkgrpc "github.com/rookie-ninja/rk-grpc/boot"
 
-	"github.com/gin-contrib/gzip"
 	uuid "github.com/google/uuid"
 	"github.com/joho/godotenv"
 
@@ -66,6 +69,19 @@ func LoadEnv() error {
 	return nil
 }
 
+// @title Swagger Example API
+// @version 1.0
+// @description This is a sample rk-demo server.
+// @termsOfService http://swagger.io/terms/
+
+// @securityDefinitions.basic BasicAuth
+
+// @contact.name API Support
+// @contact.url http://www.swagger.io/support
+// @contact.email support@swagger.io
+
+// @license.name Apache 2.0
+// @license.url http://www.apache.org/licenses/LICENSE-2.0.html
 func main() {
 	LoadEnv()
 	_, err := utils.LoadConf()
@@ -73,131 +89,35 @@ func main() {
 		fmt.Println("Error loading config:", err)
 		return
 	}
-
 	if os.Getenv("ENV") == "PRODUCTION" {
 		gin.SetMode(gin.ReleaseMode)
 	}
-
-	//Start the default gin server
-	r := gin.Default()
-
-	//Custom form validator
-	// binding.Validator = new(forms.DefaultValidator)
-
-	r.Use(CORSMiddleware())
-	r.Use(RequestIDMiddleware())
-	r.Use(gzip.Gzip(gzip.DefaultCompression))
-
-	//Start database
-	//Example: db.GetDB() - More info in the models folder
 	db.Init()
-
-	//Start Redis on database 1 - it's used to store the JWT but you can use it for anythig else
-	//Example: db.GetRedis().Set(KEY, VALUE, at.Sub(now)).Err()
 	db.InitRedis(1)
+	//boot
+	boot := rkboot.NewBoot()
 
-	params := db.QueryParams{
-		Where: db.WhereParams{
-			Or: []db.WhereParams{
-				{
-					Attr: map[string]db.AttributeParams{
-						"id": {
-							Eq: 2,
-						},
-					},
-				},
-			},
-		},
-		OrderBy: []string{"-id"},
-		Limit:   2,
-		Offset:  0,
-		Populate: []string{
-			"Articles",
-		},
+	//gin entry
+	entry := rkgin.GetGinEntry("ginboilerplate")
+
+	//router setup
+	v1 := entry.Router.Group("/v1")
+	{
+		article := hv1.ArticleHandlerV1{}
+		v1.GET("/test", article.Get)
+		v1.POST("/test", article.Update)
 	}
-	// db.Query("user", params).Find(&results)
-	var users []models.User
-	db.Query("users", params, &users)
-	for _, user := range users {
-		fmt.Println("----------")
-		fmt.Println(user.ID)
-		fmt.Println(user.Email)
-		fmt.Println(user.Password)
-		fmt.Println(user.Name)
-		fmt.Println(user.Articles)
+	v2 := entry.Router.Group("/v2")
+	{
+		article := hv2.ArticleHandlerV2{}
+		v2.GET("/test", article.Get)
 	}
-	// generators.LoadAPIVersions(r)
+	entry.Router.LoadHTMLGlob("./public/html/*")
+	// logger := rkentry.GlobalAppCtx.GetLoggerEntry("my-logger")
 
-	//generator: Router
+	//gRPC entry
+	grpcEntry := rkgrpc.GetGrpcEntry("ginboilerplate")
 
-	//endgenerator: Router
-
-	// v1 := r.Group("/v1")
-	// {
-	//generator: Handler
-	// }
-
-	// v1 := r.Group("/v1")
-	// {
-	/*** START USER ***/
-	// user := new(handlers.UserController)
-
-	// v1.GET("/test")
-
-	// v1.POST("/user/login", user.Login)
-	// v1.POST("/user/register", user.Register)
-	// v1.GET("/user/logout", user.Logout)
-
-	// CUSTOM CODE
-
-	// auth := new(handlers.AuthController)
-
-	//Refresh the token when needed to generate new access_token and refresh_token for the user
-	// v1.POST("/token/refresh", auth.Refresh)
-
-	/*** START Article ***/
-	// article := new(controllers.ArticleController)
-
-	// v1.POST("/article", TokenAuthMiddleware(), article.Create)
-	// v1.GET("/articles", TokenAuthMiddleware(), article.All)
-	// v1.GET("/article/:id", TokenAuthMiddleware(), article.One)
-	// v1.PUT("/article/:id", TokenAuthMiddleware(), article.Update)
-	// v1.DELETE("/article/:id", TokenAuthMiddleware(), article.Delete)
-	// }
-
-	r.LoadHTMLGlob("./public/html/*")
-
-	r.Static("/public", "./public")
-
-	r.GET("/", func(c *gin.Context) {
-		c.HTML(http.StatusOK, "index.html", gin.H{
-			"ginBoilerplateVersion": "v0.03",
-			"goVersion":             runtime.Version(),
-		})
-	})
-
-	r.NoRoute(func(c *gin.Context) {
-		c.HTML(404, "404.html", gin.H{})
-	})
-
-	port := os.Getenv("PORT")
-
-	log.Printf("\n\n PORT: %s \n ENV: %s \n SSL: %s \n Version: %s \n\n", port, os.Getenv("ENV"), os.Getenv("SSL"), os.Getenv("API_VERSION"))
-
-	if os.Getenv("SSL") == "TRUE" {
-
-		//Generated using sh generate-certificate.sh
-		SSLKeys := &struct {
-			CERT string
-			KEY  string
-		}{
-			CERT: "./cert/myCA.cer",
-			KEY:  "./cert/myCA.key",
-		}
-
-		r.RunTLS(":"+port, SSLKeys.CERT, SSLKeys.KEY)
-	} else {
-		r.Run(":" + port)
-	}
-
+	boot.Bootstrap(context.TODO())
+	boot.WaitForShutdownSig(context.TODO())
 }

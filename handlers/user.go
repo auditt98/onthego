@@ -1,7 +1,7 @@
 package handlers
 
 // UserController ...
-type UserController struct{}
+// type UserController struct{}
 
 // var userModel = new(models.UserModel)
 
