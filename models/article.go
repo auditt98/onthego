@@ -10,5 +10,5 @@ type Article struct {
 	Title   string
 	Content string
 	UserID  uint
-	User    User
+	User    User `gorm:"foreignKey:UserID"`
 }

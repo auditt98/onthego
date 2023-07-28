@@ -7,7 +7,8 @@ import (
 )
 
 type QueryEngine struct {
-	Ref *gorm.DB
+	Ref       *gorm.DB
+	TableName string
 }
 
 type QueryParams struct {
@@ -16,7 +17,7 @@ type QueryParams struct {
 	Offset   int
 	OrderBy  []string
 	Limit    int
-	Populate []string //user.articles, user.articles.comments
+	Populate []string //*, user.articles, user.articles.comments
 }
 
 type AttributeParams struct {

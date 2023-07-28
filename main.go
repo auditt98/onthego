@@ -102,11 +102,17 @@ func main() {
 				{
 					Attr: map[string]db.AttributeParams{
 						"id": {
-							Lt: "5",
+							Eq: 2,
 						},
 					},
 				},
 			},
+		},
+		OrderBy: []string{"-id"},
+		Limit:   2,
+		Offset:  0,
+		Populate: []string{
+			"Articles",
 		},
 	}
 	// db.Query("user", params).Find(&results)
@@ -118,7 +124,7 @@ func main() {
 		fmt.Println(user.Email)
 		fmt.Println(user.Password)
 		fmt.Println(user.Name)
-
+		fmt.Println(user.Articles)
 	}
 	// generators.LoadAPIVersions(r)
 
