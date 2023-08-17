@@ -55,7 +55,7 @@ You can select the database driver you want to use by changing the `DB_DRIVER` i
 
 #### Currently, the supported drivers are:
 - mysql
-- postgres
+- postgres (support Postgres and CockroachDB)
 - mssql
 
 #### Replace the following in the `.env` file
@@ -68,15 +68,51 @@ DB_PORT=
 DB_NAME=
 ```
 
+### Environment variables
+
+Multiple environment variables are supported (dev, staging, prod)
+There are a few ways to load the default env
+
+#### 1. Using the `ONTHEGO_ENV` environment variable 
+```
+	export ONTHEGO_ENV=dev
+```
+
+#### 2. Using the env=[target] flag
+```
+	air env=dev
+```
+
+#### 3. Default to dev
+```
+	air
+```
+
+* Note that env=[target] flag has the highest priority, followed by ONTHEGO_ENV, and then defaulting to dev
+
+### Authentication
+This project aims to use Zitadel as the authentication provider. (WIP)
+Zitadel will requires an instance of Zitadel and a single-node CockroachDB instance to run. (docker-compose.yaml)
+
+Default credentials for Zitadel:
+```
+	username: zitadel-admin@zitadel.localhost
+	password: Password1!
+```
+
+#### Setup Authorization
+
+
+
 ### Running Your Application
 
-This project supports Live Reloading with [Air](https://github.com/cosmtrek/air)
-
-To start the development of the project, run the following command:
-
+- Step 1: Run docker compose up to start the database and Zitadel
 ```
-  air
+	docker-compose up
 ```
+
+- Step 2: Setup Zitadel
+
 
 ## Building Your Application
 

@@ -4,7 +4,6 @@ import (
 	"context"
 	_ "embed"
 	"fmt"
-	"log"
 	"os"
 
 	"github.com/auditt98/onthego/db"
@@ -13,7 +12,6 @@ import (
 	"github.com/auditt98/onthego/utils"
 	rkboot "github.com/rookie-ninja/rk-boot/v2"
 	rkgin "github.com/rookie-ninja/rk-gin/v2/boot"
-	rkgrpc "github.com/rookie-ninja/rk-grpc/boot"
 
 	uuid "github.com/google/uuid"
 	"github.com/joho/godotenv"
@@ -61,27 +59,35 @@ func TokenAuthMiddleware() gin.HandlerFunc {
 }
 
 func LoadEnv() error {
-	err := godotenv.Load(".env")
-	if err != nil {
-		log.Fatal("error: failed to load the env file")
+	args := os.Args
+	var env string
+	//get env from cmd line argument env=[dev/staging/prod]
+	//else get from env variable ONTHEGO_ENV
+	//else default to dev
+	for _, arg := range args {
+		if arg[:4] == "env=" {
+			env = arg[4:]
+			break
+		}
 	}
 
+	if env == "" {
+		env = os.Getenv("ONTHEGO_ENV")
+	}
+	if env == "" {
+		env = "dev"
+	}
+	//load .env.[env].local, .env.local, .env.[env], .env
+	godotenv.Load(".env." + env + ".local")
+	godotenv.Load(".env.local")
+	godotenv.Load(".env." + env)
+	godotenv.Load()
+	if env == "prod" {
+		gin.SetMode(gin.ReleaseMode)
+	}
 	return nil
 }
 
-// @title Swagger Example API
-// @version 1.0
-// @description This is a sample rk-demo server.
-// @termsOfService http://swagger.io/terms/
-
-// @securityDefinitions.basic BasicAuth
-
-// @contact.name API Support
-// @contact.url http://www.swagger.io/support
-// @contact.email support@swagger.io
-
-// @license.name Apache 2.0
-// @license.url http://www.apache.org/licenses/LICENSE-2.0.html
 func main() {
 	LoadEnv()
 	_, err := utils.LoadConf()
@@ -89,34 +95,25 @@ func main() {
 		fmt.Println("Error loading config:", err)
 		return
 	}
-	if os.Getenv("ENV") == "PRODUCTION" {
-		gin.SetMode(gin.ReleaseMode)
-	}
 	db.Init()
 	db.InitRedis(1)
-	//boot
 	boot := rkboot.NewBoot()
-
-	//gin entry
 	entry := rkgin.GetGinEntry("ginboilerplate")
 
-	//router setup
-	v1 := entry.Router.Group("/v1")
+	//router
+	v1 := entry.Router.Group("/api/v1")
 	{
 		article := hv1.ArticleHandlerV1{}
 		v1.GET("/test", article.Get)
 		v1.POST("/test", article.Update)
 	}
-	v2 := entry.Router.Group("/v2")
+	v2 := entry.Router.Group("/api/v2")
 	{
 		article := hv2.ArticleHandlerV2{}
 		v2.GET("/test", article.Get)
 	}
 	entry.Router.LoadHTMLGlob("./public/html/*")
 	// logger := rkentry.GlobalAppCtx.GetLoggerEntry("my-logger")
-
-	//gRPC entry
-	grpcEntry := rkgrpc.GetGrpcEntry("ginboilerplate")
 
 	boot.Bootstrap(context.TODO())
 	boot.WaitForShutdownSig(context.TODO())

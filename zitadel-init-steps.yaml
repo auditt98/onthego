@@ -1,0 +1,9 @@
+DefaultInstance:
+  PatPath: ./pat.txt
+  Org:
+    Machine:
+      Machine:
+        Username: core_service_user
+        Name: core_service_user
+      Pat:
+        ExpirationDate: 9999-01-01T00:00:00Z
