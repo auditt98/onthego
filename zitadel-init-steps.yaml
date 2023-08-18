@@ -1,9 +1,14 @@
-DefaultInstance:
-  PatPath: ./pat.txt
+FirstInstance:
+  MachineKeyPath: /machinekey/core_service_user_key.json
+  # PatPath: /machinekey/pat.txt
+  InstanceName: OnTheGo
   Org:
+    Name: OnTheGo
     Machine:
       Machine:
         Username: core_service_user
         Name: core_service_user
-      Pat:
-        ExpirationDate: 9999-01-01T00:00:00Z
+      # Pat:
+      #   ExpirationDate: 2029-01-01T00:00:00Z
+      MachineKey:
+        Type: 1

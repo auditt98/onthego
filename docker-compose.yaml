@@ -1,48 +1,46 @@
-version: '3.8'
+version: "3.8"
 
 services:
   zitadel:
-    restart: 'always'
+    restart: "always"
     networks:
-      - 'zitadel'
-    image: 'ghcr.io/zitadel/zitadel:latest'
-    command: 'start-from-init --masterkey "MasterkeyNeedsToHave32Characters" --tlsMode disabled'
+      - "zitadel"
+    image: "ghcr.io/zitadel/zitadel:latest"
+    command: 'start-from-init --steps /zitadel-init-steps.yaml --masterkey "MasterkeyNeedsToHave32Characters" --tlsMode disabled'
     environment:
-      - 'ZITADEL_DATABASE_COCKROACH_HOST=crdb'
-      - 'ZITADEL_EXTERNALSECURE=false'
-      - 'ZITADEL_DEFAULTINSTANCE_PATPATH=/machinekey/pat.txt'
-      - 'ZITADEL_DEFAULTINSTANCE_ORG_NAME=OnTheGo'
-      - 'ZITADEL_DEFAULTINSTANCE_ORG_MACHINE_MACHINE_USERNAME=zitadel-admin-sa'
-      - 'ZITADEL_DEFAULTINSTANCE_ORG_MACHINE_MACHINE_NAME=Admin'
-      - 'ZITADEL_DEFAULTINSTANCE_ORG_MACHINE_PAT_EXPIRATIONDATE=2030-12-31T23:59:59Z'
+      - "ZITADEL_DATABASE_COCKROACH_HOST=crdb"
+      - "ZITADEL_EXTERNALSECURE=false"
+      - "ZITADEL_DEFAULTINSTANCE_ORG_NAME=OnTheGo"
+      # - "ZITADEL_DEFAULTINSTANCE_ORG_MACHINE_MACHINE_USERNAME=core_service_user"
+      # - "ZITADEL_DEFAULTINSTANCE_ORG_MACHINE_MACHINE_NAME=core_service_user"
       # - 'ZITADEL_DEFAULTINSTANCE_ORG_HUMAN_USERNAME=root'
       # - 'ZITADEL_DEFAULTINSTANCE_ORG_HUMAN_PASSWORD=Password1!'
-      # - 'ZITADEL_FIRSTINSTANCE_MACHINEKEYPATH=/machinekey/zitadel-admin-sa.json'
-      # - 'ZITADEL_FIRSTINSTANCE_ORG_MACHINE_MACHINEKEY_TYPE=1'
+      # - "ZITADEL_FIRSTINSTANCE_MACHINEKEYPATH=/machinekey/core_service_user_key.json"
+      # - "ZITADEL_FIRSTINSTANCE_ORG_MACHINE_MACHINEKEY_TYPE=1"
     depends_on:
       crdb:
-        condition: 'service_healthy'
+        condition: "service_healthy"
     ports:
-      - '8080:8080'
+      - "8080:8080"
     volumes:
-      - "./zitadel-init-steps.yaml:/zitadel-init-steps.yaml:ro"
+      - "./zitadel-init-steps.yaml:/zitadel-init-steps.yaml"
       - ./machinekey:/machinekey
 
   crdb:
-    restart: 'always'
+    restart: "always"
     networks:
-      - 'zitadel'
-    image: 'cockroachdb/cockroach:v22.2.2'
-    command: 'start-single-node --insecure'
+      - "zitadel"
+    image: "cockroachdb/cockroach:v22.2.2"
+    command: "start-single-node --insecure"
     healthcheck:
       test: ["CMD", "curl", "-f", "http://localhost:8080/health?ready=1"]
-      interval: '10s'
-      timeout: '30s'
+      interval: "10s"
+      timeout: "30s"
       retries: 5
-      start_period: '20s'
+      start_period: "20s"
     ports:
-      - '9090:8080'
-      - '26257:26257'
+      - "9090:8080"
+      - "26257:26257"
 
 networks:
   zitadel:

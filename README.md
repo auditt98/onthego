@@ -27,46 +27,16 @@ It provides a quick way to bootstrap your project with a predefined structure wi
 
 
 ### On my TODO list
-- Finish implementing the Query Engine to support Projection, Population
 - Implementing OIDC authentication (Using Zitadel)
 - Dockerize
 
 ### Installation
 
 ```
-$ go get onthego
-```
-
-```
-$ cd $GOPATH/src/onthego
-```
-
-```
-$ go mod init
-```
-
-```
+$ go get
 $ go install
 ```
 
-### Database Driver
-You can select the database driver you want to use by changing the `DB_DRIVER` in the `.env` file
-
-
-#### Currently, the supported drivers are:
-- mysql
-- postgres (support Postgres and CockroachDB)
-- mssql
-
-#### Replace the following in the `.env` file
-```
-DB_DRIVER=
-DB_USER=
-DB_PASS=
-DB_HOST=
-DB_PORT=
-DB_NAME=
-```
 
 ### Environment variables
 
@@ -90,29 +60,20 @@ There are a few ways to load the default env
 
 * Note that env=[target] flag has the highest priority, followed by ONTHEGO_ENV, and then defaulting to dev
 
-### Authentication
-This project aims to use Zitadel as the authentication provider. (WIP)
-Zitadel will requires an instance of Zitadel and a single-node CockroachDB instance to run. (docker-compose.yaml)
-
-Default credentials for Zitadel:
+#### Replace the following in the `.env` file
 ```
-	username: zitadel-admin@zitadel.localhost
-	password: Password1!
-```
-
-#### Setup Authorization
-
-
-
-### Running Your Application
-
-- Step 1: Run docker compose up to start the database and Zitadel
-```
-	docker-compose up
+DB_DRIVER=
+DB_USER=
+DB_PASS=
+DB_HOST=
+DB_PORT=
+DB_NAME=
 ```
 
-- Step 2: Setup Zitadel
-
+#### Currently, the supported drivers are:
+- mysql
+- postgres (support Postgres and CockroachDB) (Recommended)
+- mssql
 
 ## Building Your Application
 

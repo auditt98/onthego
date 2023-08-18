@@ -41,9 +41,8 @@ gin:
         enabled: true
         allowOrigins:
           - "http://localhost:*"
-#        ignore: [""]
-#        allowCredentials: false
-#        allowHeaders: []
-#        allowMethods: []
-#        exposeHeaders: []
-#        maxAge: 0
+      allowCredentials: true
+      allowHeaders: ["X-Requested-With, Content-Type, Origin, Authorization, Accept, Client-Security-Token, Accept-Encoding, x-access-token"]
+      allowMethods: ["POST", "GET", "OPTIONS", "PUT", "DELETE"]
+      exposeHeaders: ["Content-Length"]
+      maxAge: 86400

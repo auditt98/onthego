@@ -13,41 +13,10 @@ import (
 	rkboot "github.com/rookie-ninja/rk-boot/v2"
 	rkgin "github.com/rookie-ninja/rk-gin/v2/boot"
 
-	uuid "github.com/google/uuid"
 	"github.com/joho/godotenv"
 
 	"github.com/gin-gonic/gin"
 )
-
-// CORSMiddleware ...
-// CORS (Cross-Origin Resource Sharing)
-func CORSMiddleware() gin.HandlerFunc {
-	return func(c *gin.Context) {
-		c.Writer.Header().Set("Access-Control-Allow-Origin", "http://localhost")
-		c.Writer.Header().Set("Access-Control-Max-Age", "86400")
-		c.Writer.Header().Set("Access-Control-Allow-Methods", "POST, GET, OPTIONS, PUT, DELETE, UPDATE")
-		c.Writer.Header().Set("Access-Control-Allow-Headers", "X-Requested-With, Content-Type, Origin, Authorization, Accept, Client-Security-Token, Accept-Encoding, x-access-token")
-		c.Writer.Header().Set("Access-Control-Expose-Headers", "Content-Length")
-		c.Writer.Header().Set("Access-Control-Allow-Credentials", "true")
-
-		if c.Request.Method == "OPTIONS" {
-			fmt.Println("OPTIONS")
-			c.AbortWithStatus(200)
-		} else {
-			c.Next()
-		}
-	}
-}
-
-// RequestIDMiddleware ...
-// Generate a unique ID and attach it to each request for future reference or use
-func RequestIDMiddleware() gin.HandlerFunc {
-	return func(c *gin.Context) {
-		uuid := uuid.New()
-		c.Writer.Header().Set("X-Request-Id", uuid.String())
-		c.Next()
-	}
-}
 
 // TokenAuthMiddleware ...
 // JWT Authentication middleware attached to each request that needs to be authenitcated to validate the access_token in the header
@@ -88,6 +57,12 @@ func LoadEnv() error {
 	return nil
 }
 
+func InitZitadel() {
+	k, _ := utils.GenerateJWTFromKeyFile()
+	//create the default human user
+	utils.CreateDefaultHumanUser(k)
+}
+
 func main() {
 	LoadEnv()
 	_, err := utils.LoadConf()
@@ -99,6 +74,8 @@ func main() {
 	db.InitRedis(1)
 	boot := rkboot.NewBoot()
 	entry := rkgin.GetGinEntry("ginboilerplate")
+
+	InitZitadel()
 
 	//router
 	v1 := entry.Router.Group("/api/v1")
