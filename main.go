@@ -10,6 +10,7 @@ import (
 	hv1 "github.com/auditt98/onthego/handlers/v1"
 	hv2 "github.com/auditt98/onthego/handlers/v2"
 	"github.com/auditt98/onthego/utils"
+	"github.com/auditt98/onthego/zitadel"
 	rkboot "github.com/rookie-ninja/rk-boot/v2"
 	rkgin "github.com/rookie-ninja/rk-gin/v2/boot"
 
@@ -58,9 +59,23 @@ func LoadEnv() error {
 }
 
 func InitZitadel() {
-	k, _ := utils.GenerateJWTFromKeyFile()
-	//create the default human user
-	utils.CreateDefaultHumanUser(k)
+	k, _ := zitadel.GenerateJWTFromKeyFile()
+	userId, err := zitadel.CreateDefaultHumanUser(k)
+	if err != nil {
+		fmt.Println("Error creating default human user:", err)
+		return
+	}
+	ok, _ := zitadel.AddUserToOrg(k, userId, []string{"ORG_OWNER"}, "")
+	if !ok {
+		fmt.Println("Error adding user to org")
+		return
+	}
+	defaultProjectId, e := zitadel.CreateDefaultProject(k, "OnTheGo", true, true, true, "")
+	if e != nil {
+		fmt.Println("Error creating default project:", e)
+		return
+	}
+	fmt.Println("Default project ID: ", defaultProjectId)
 }
 
 func main() {
