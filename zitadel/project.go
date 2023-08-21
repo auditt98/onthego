@@ -43,11 +43,9 @@ func CreateDefaultProject(jwt, name string, pRoleAssertion, pRoleCheck, hasProje
 
 	_, e := request.Post(os.Getenv("ZITADEL_DOMAIN") + "/management/v1/projects")
 	if e != nil {
-		fmt.Println("Error adding user to org: ", e.Error())
 		return "", e
 	}
 	if err.Code != 0 || err.Message != "" {
-		fmt.Println("Error adding user to org: ", err.Message)
 		return "", fmt.Errorf(err.Message)
 	}
 	return createProjectResponse.Id, nil
