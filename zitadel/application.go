@@ -1,7 +1,6 @@
 package zitadel
 
 import (
-	"encoding/json"
 	"fmt"
 	"os"
 
@@ -18,6 +17,7 @@ type CreateOIDCAppRequest struct {
 	Name                     string             `json:"name"`
 	ResponseTypes            []OIDCResponseType `json:"responseTypes"`
 	GrantTypes               []OIDCGrantType    `json:"grantTypes"`
+	RedirectURIs             []string           `json:"redirectUris"`
 	AppType                  OIDCAppType        `json:"appType"`
 	AuthMethodType           OIDCAuthMethodType `json:"authMethodType"`
 	DevMode                  bool               `json:"devMode"`
@@ -43,12 +43,7 @@ func CreateOIDCApp(orgId, projectId, jwt string, oidcAppRequest CreateOIDCAppReq
 		SetAuthToken(jwt).
 		SetResult(&response).
 		SetError(&err)
-	fmt.Println("Request Headers:")
-	for key, value := range request.Header {
-		fmt.Printf("%s: %s\n", key, value)
-	}
-	b, _ := json.MarshalIndent(&request.Body, "", "\t")
-	fmt.Println("Request Body: ", string(b))
+
 	_, e := request.Post(os.Getenv("ZITADEL_DOMAIN") + "/management/v1" + "/projects/" + projectId + "/apps/oidc")
 
 	if e != nil {

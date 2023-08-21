@@ -79,10 +79,11 @@ func InitZitadel() {
 	var defaultAppRequest = zitadel.CreateOIDCAppRequest{
 		Name:                     "OnTheWall",
 		DevMode:                  true,
-		ResponseTypes:            []zitadel.OIDCResponseType{"OIDC_RESPONSE_TYPE_CODE", "OIDC_RESPONSE_TYPE_ID_TOKEN", "OIDC_RESPONSE_TYPE_ID_TOKEN_TOKEN"},
+		RedirectURIs:             []string{"http://localhost:8080"},
+		ResponseTypes:            []zitadel.OIDCResponseType{"OIDC_RESPONSE_TYPE_CODE"},
 		GrantTypes:               []zitadel.OIDCGrantType{"OIDC_GRANT_TYPE_AUTHORIZATION_CODE", "OIDC_GRANT_TYPE_REFRESH_TOKEN"},
 		AppType:                  zitadel.OIDCAppType("OIDC_APP_TYPE_WEB"),
-		AuthMethodType:           zitadel.OIDCAuthMethodType("OIDC_AUTH_METHOD_TYPE_BASIC"),
+		AuthMethodType:           zitadel.OIDCAuthMethodType("OIDC_AUTH_METHOD_TYPE_NONE"),
 		AccessTokenRoleAssertion: true,
 		IDTokenRoleAssertion:     true,
 		IdTokenUserInfoAssertion: true,
@@ -93,7 +94,7 @@ func InitZitadel() {
 		fmt.Println("Error creating default app:", e)
 		return
 	}
-	fmt.Println("AppId:", createAppResponse.AppId)
+	fmt.Println("Default AppId: ", createAppResponse.AppId)
 }
 
 func main() {
