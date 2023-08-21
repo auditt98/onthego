@@ -77,12 +77,15 @@ func InitZitadel() {
 	}
 	fmt.Println("Default ProjectId: ", defaultProjectId)
 	var defaultAppRequest = zitadel.CreateOIDCAppRequest{
-		Name:           "OnTheWall",
-		DevMode:        true,
-		ResponseTypes:  []zitadel.OIDCResponseType{"OIDC_RESPONSE_TYPE_ID_TOKEN_TOKEN", "OIDC_RESPONSE_TYPE_ID_TOKEN", "OIDC_RESPONSE_TYPE_ID_TOKEN_TOKEN"},
-		GrantTypes:     []zitadel.OIDCGrantType{"OIDC_GRANT_TYPE_AUTHORIZATION_CODE", "OIDC_GRANT_TYPE_REFRESH_TOKEN"},
-		AppType:        zitadel.OIDCAppType("OIDC_APP_TYPE_WEB"),
-		AuthMethodType: zitadel.OIDCAuthMethodType("OIDC_AUTH_METHOD_TYPE_BASIC"),
+		Name:                     "OnTheWall",
+		DevMode:                  true,
+		ResponseTypes:            []zitadel.OIDCResponseType{"OIDC_RESPONSE_TYPE_CODE", "OIDC_RESPONSE_TYPE_ID_TOKEN", "OIDC_RESPONSE_TYPE_ID_TOKEN_TOKEN"},
+		GrantTypes:               []zitadel.OIDCGrantType{"OIDC_GRANT_TYPE_AUTHORIZATION_CODE", "OIDC_GRANT_TYPE_REFRESH_TOKEN"},
+		AppType:                  zitadel.OIDCAppType("OIDC_APP_TYPE_WEB"),
+		AuthMethodType:           zitadel.OIDCAuthMethodType("OIDC_AUTH_METHOD_TYPE_BASIC"),
+		AccessTokenRoleAssertion: true,
+		IDTokenRoleAssertion:     true,
+		IdTokenUserInfoAssertion: true,
 	}
 
 	createAppResponse, e := zitadel.CreateOIDCApp("", defaultProjectId, k, defaultAppRequest)
