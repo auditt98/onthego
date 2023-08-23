@@ -1,12 +1,45 @@
 package zitadel
 
 import (
+	"encoding/json"
 	"fmt"
 	"os"
 
 	"github.com/auditt98/onthego/types"
 	"github.com/go-resty/resty/v2"
 )
+
+type RoleRequest struct {
+	Key         string `json:"key"`
+	DisplayName string `json:"display_name"`
+}
+
+func BulkAddRoleToProject(jwt, projectId string, roles []RoleRequest) error {
+	var err types.ZitadelError
+	type AddRoleToProjectRequest struct {
+		Roles []RoleRequest `json:"roles"`
+	}
+	body := AddRoleToProjectRequest{Roles: roles}
+
+	client := resty.New()
+	request := client.R().
+		ForceContentType("application/json").
+		SetBody(body).
+		SetAuthToken(jwt).
+		SetError(&err)
+
+	b, _ := json.Marshal(AddRoleToProjectRequest{Roles: roles})
+	fmt.Println(string(b))
+
+	_, e := request.Post(os.Getenv("ZITADEL_DOMAIN") + "/management/v1/projects/" + projectId + "/roles/_bulk")
+	if e != nil {
+		return e
+	}
+	if err.Code != 0 || err.Message != "" {
+		return fmt.Errorf(err.Message)
+	}
+	return nil
+}
 
 func CreateDefaultProject(jwt, name string, pRoleAssertion, pRoleCheck, hasProjectCheck bool, orgId string) (string, error) {
 	var err types.ZitadelError

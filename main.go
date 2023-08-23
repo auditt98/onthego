@@ -70,16 +70,41 @@ func InitZitadel() {
 		fmt.Println("Error adding user to org")
 		return
 	}
+
+	ok, _ = zitadel.AddUserToIAM(k, userId)
+	if !ok {
+		fmt.Println("Error adding user to iam")
+		return
+	}
+
 	defaultProjectId, e := zitadel.CreateDefaultProject(k, "OnTheGo", true, true, true, "")
 	if e != nil {
 		fmt.Println("Error creating default project:", e)
 		return
 	}
 	fmt.Println("Default ProjectId: ", defaultProjectId)
+	e = zitadel.BulkAddRoleToProject(k, defaultProjectId, []zitadel.RoleRequest{
+		{
+			Key:         "ADMIN",
+			DisplayName: "Admin",
+		},
+		{
+			Key:         "USER",
+			DisplayName: "User",
+		},
+		{
+			Key:         "MODERATOR",
+			DisplayName: "Moderator",
+		},
+	})
+	if e != nil {
+		fmt.Println("Error adding roles to project:", e)
+		return
+	}
 	var defaultAppRequest = zitadel.CreateOIDCAppRequest{
 		Name:                     "OnTheWall",
 		DevMode:                  true,
-		RedirectURIs:             []string{"http://localhost:8080"},
+		RedirectURIs:             []string{"http://localhost:3000/api/auth/callback/zitadel"},
 		ResponseTypes:            []zitadel.OIDCResponseType{"OIDC_RESPONSE_TYPE_CODE"},
 		GrantTypes:               []zitadel.OIDCGrantType{"OIDC_GRANT_TYPE_AUTHORIZATION_CODE", "OIDC_GRANT_TYPE_REFRESH_TOKEN"},
 		AppType:                  zitadel.OIDCAppType("OIDC_APP_TYPE_WEB"),

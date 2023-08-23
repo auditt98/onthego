@@ -189,3 +189,33 @@ func CreateDefaultHumanUser(jwt string) (string, error) {
 	}
 	return createUserResponse.UserId, nil
 }
+
+func AddUserToIAM(jwt, userId string) (bool, error) {
+	type AddUserToIAMRequest struct {
+		UserId string   `json:"userId"`
+		Roles  []string `json:"roles"`
+	}
+
+	var err types.ZitadelError
+	var addUserToIAMRequest AddUserToIAMRequest
+	addUserToIAMRequest.UserId = userId
+	addUserToIAMRequest.Roles = []string{"IAM_OWNER"}
+
+	_, e := resty.New().R().
+		ForceContentType("application/json").
+		SetBody(addUserToIAMRequest).
+		SetAuthToken(jwt).
+		SetError(&err).
+		Post(os.Getenv("ZITADEL_DOMAIN") + "/admin/v1/members")
+
+	if e != nil {
+		fmt.Println("Error creating default human user ", e.Error())
+		return false, e
+	}
+
+	if (err.Code != 0) || (err.Message != "") {
+		fmt.Println("Error creating default human user ", err.Message)
+		return false, fmt.Errorf(err.Message)
+	}
+	return true, nil
+}
