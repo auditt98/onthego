@@ -219,3 +219,7 @@ func AddUserToIAM(jwt, userId string) (bool, error) {
 	}
 	return true, nil
 }
+
+func TokenInstropection() {
+
+}

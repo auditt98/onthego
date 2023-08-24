@@ -4,7 +4,9 @@ import (
 	"context"
 	_ "embed"
 	"fmt"
+	"net/http"
 	"os"
+	"time"
 
 	"github.com/auditt98/onthego/db"
 	hv1 "github.com/auditt98/onthego/handlers/v1"
@@ -62,24 +64,20 @@ func InitZitadel() {
 	k, _ := zitadel.GenerateJWTFromKeyFile()
 	userId, err := zitadel.CreateDefaultHumanUser(k)
 	if err != nil {
-		fmt.Println("Error creating default human user:", err)
 		return
 	}
 	ok, _ := zitadel.AddUserToOrg(k, userId, []string{"ORG_OWNER"}, "")
 	if !ok {
-		fmt.Println("Error adding user to org")
 		return
 	}
 
 	ok, _ = zitadel.AddUserToIAM(k, userId)
 	if !ok {
-		fmt.Println("Error adding user to iam")
 		return
 	}
 
-	defaultProjectId, e := zitadel.CreateDefaultProject(k, "OnTheGo", true, true, true, "")
+	defaultProjectId, e := zitadel.CreateDefaultProject(k, "OnTheGo", true, false, true, "")
 	if e != nil {
-		fmt.Println("Error creating default project:", e)
 		return
 	}
 	fmt.Println("Default ProjectId: ", defaultProjectId)
@@ -98,7 +96,6 @@ func InitZitadel() {
 		},
 	})
 	if e != nil {
-		fmt.Println("Error adding roles to project:", e)
 		return
 	}
 	var defaultAppRequest = zitadel.CreateOIDCAppRequest{
@@ -116,10 +113,20 @@ func InitZitadel() {
 
 	createAppResponse, e := zitadel.CreateOIDCApp("", defaultProjectId, k, defaultAppRequest)
 	if e != nil {
-		fmt.Println("Error creating default app:", e)
 		return
 	}
-	fmt.Println("Default AppId: ", createAppResponse.AppId)
+	fmt.Println("Default App ClientId: ", createAppResponse.ClientId)
+
+	actionId := zitadel.AddDefaultUserGrantAction(k, "", defaultProjectId)
+	if actionId == "" {
+		return
+	}
+	fmt.Println("Default ActionId: ", actionId)
+	setTriggerActionResult := zitadel.SetTriggerAction(k, "", "1", "3", []string{actionId})
+	setTriggerActionResult = zitadel.SetTriggerAction(k, "", "3", "3", []string{actionId})
+	if !setTriggerActionResult {
+		return
+	}
 }
 
 func main() {
@@ -135,12 +142,12 @@ func main() {
 	entry := rkgin.GetGinEntry("ginboilerplate")
 
 	InitZitadel()
-
+	// introspection, err := http_mw.NewIntrospectionInterceptor(os.Getenv("ZITADEL_DOMAIN"), middleware.OSKeyPath())
 	//router
 	v1 := entry.Router.Group("/api/v1")
 	{
 		article := hv1.ArticleHandlerV1{}
-		v1.GET("/test", article.Get)
+		// v1.GET("/test", introspection.HandlerFunc(writeOK), article.Get)
 		v1.POST("/test", article.Update)
 	}
 	v2 := entry.Router.Group("/api/v2")
@@ -150,7 +157,10 @@ func main() {
 	}
 	entry.Router.LoadHTMLGlob("./public/html/*")
 	// logger := rkentry.GlobalAppCtx.GetLoggerEntry("my-logger")
-
 	boot.Bootstrap(context.TODO())
 	boot.WaitForShutdownSig(context.TODO())
+}
+
+func writeOK(w http.ResponseWriter, r *http.Request) {
+	w.Write([]byte("OK " + time.Now().String()))
 }
