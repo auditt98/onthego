@@ -3,7 +3,9 @@ package main
 import (
 	"context"
 	_ "embed"
+	"encoding/json"
 	"fmt"
+	"io/ioutil"
 	"net/http"
 	"os"
 	"time"
@@ -117,6 +119,26 @@ func InitZitadel() {
 	}
 	fmt.Println("Default App ClientId: ", createAppResponse.ClientId)
 
+	createAPIResponse, e := zitadel.CreateAPIApp(k, defaultProjectId, "OnTheWall_API")
+	if e != nil {
+		return
+	}
+	//write create api response to file
+	fmt.Println("Default API ClientId: ", createAPIResponse.ClientId)
+	fmt.Println("Default API ClientSecret", createAPIResponse.ClientSecret)
+	fmt.Println("Default API AppId", createAPIResponse.AppId)
+	jsonData, err := json.Marshal(createAPIResponse)
+	if err != nil {
+		fmt.Println("Error:", err)
+		return
+	}
+
+	err = ioutil.WriteFile("./machinekey/default_api_secret.json", jsonData, 0644)
+	if err != nil {
+		fmt.Println("Error:", err)
+		return
+	}
+
 	actionId := zitadel.AddDefaultUserGrantAction(k, "", defaultProjectId)
 	if actionId == "" {
 		return
@@ -146,9 +168,11 @@ func main() {
 	//router
 	v1 := entry.Router.Group("/api/v1")
 	{
-		article := hv1.ArticleHandlerV1{}
+		// article := hv1.ArticleHandlerV1{}
+		user := hv1.UserHandlerV1{}
 		// v1.GET("/test", introspection.HandlerFunc(writeOK), article.Get)
-		v1.POST("/test", article.Update)
+		// v1.POST("/test", article.Update)
+		v1.POST("/test", user.AddUserFromIdP)
 	}
 	v2 := entry.Router.Group("/api/v2")
 	{

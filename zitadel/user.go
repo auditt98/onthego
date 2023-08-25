@@ -220,6 +220,34 @@ func AddUserToIAM(jwt, userId string) (bool, error) {
 	return true, nil
 }
 
+func VerifySecret(clientId, secret string) bool {
+	type SecretAPIResponse struct {
+		ClientId     string `json:"ClientId"`
+		ClientSecret string `json:"ClientSecret"`
+		AppId        string `json:"AppId"`
+	}
+
+	var apiResponse SecretAPIResponse
+
+	jsonData, err := ioutil.ReadFile("./machinekey/default_api_secret.json")
+	if err != nil {
+		fmt.Println("Error:", err)
+		return false
+	}
+
+	err = json.Unmarshal(jsonData, &apiResponse)
+	if err != nil {
+		fmt.Println("Error:", err)
+		return false
+	}
+
+	if apiResponse.ClientId == clientId && apiResponse.ClientSecret == secret {
+		return true
+	} else {
+		return false
+	}
+}
+
 func TokenInstropection() {
 
 }

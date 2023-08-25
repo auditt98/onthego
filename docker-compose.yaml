@@ -6,7 +6,7 @@ services:
     networks:
       - "zitadel"
     image: "ghcr.io/zitadel/zitadel:latest"
-    command: 'start-from-init --steps /zitadel-init-steps.yaml --masterkey "MasterkeyNeedsToHave32Characters" --tlsMode disabled'
+    command: 'start-from-init --config  /zitadel-config.yaml --steps /zitadel-init-steps.yaml --masterkey "MasterkeyNeedsToHave32Characters" --tlsMode disabled'
     environment:
       - "ZITADEL_DATABASE_COCKROACH_HOST=crdb"
       - "ZITADEL_EXTERNALSECURE=false"

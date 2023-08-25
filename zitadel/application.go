@@ -33,6 +33,16 @@ type CreateOIDCAppResponse struct {
 	NoneCompliant bool   `json:"noneCompliant"`
 }
 
+type CreateAPIAppRequest struct {
+	Name string `json:"name"`
+}
+
+type CreateAPIAppResponse struct {
+	AppId        string `json:"appId"`
+	ClientId     string `json:"clientId"`
+	ClientSecret string `json:"clientSecret"`
+}
+
 func CreateOIDCApp(orgId, projectId, jwt string, oidcAppRequest CreateOIDCAppRequest) (*CreateOIDCAppResponse, error) {
 	var err types.ZitadelError
 	var response CreateOIDCAppResponse
@@ -55,6 +65,29 @@ func CreateOIDCApp(orgId, projectId, jwt string, oidcAppRequest CreateOIDCAppReq
 	return &response, nil
 }
 
-func CreateAPIApp(projectId, name string, devMode bool) {
+func CreateAPIApp(jwt, projectId, name string) (*CreateAPIAppResponse, error) {
+	var err types.ZitadelError
+	var response CreateAPIAppResponse
+	var apiAppRequest CreateAPIAppRequest
+	apiAppRequest.Name = name
 
+	client := resty.New()
+	request := client.R().
+		ForceContentType("application/json").
+		SetBody(apiAppRequest).
+		SetAuthToken(jwt).
+		SetResult(&response).
+		SetError(&err)
+
+	_, e := request.Post(os.Getenv("ZITADEL_DOMAIN") + "/management/v1" + "/projects/" + projectId + "/apps/api")
+
+	if e != nil {
+		fmt.Println("Error creating default api app ", e.Error())
+		return nil, e
+	}
+	if err.Code != 0 || err.Message != "" {
+		fmt.Println("Error creating default api app ", err.Message)
+		return nil, fmt.Errorf(err.Message)
+	}
+	return &response, nil
 }
