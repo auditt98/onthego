@@ -10,6 +10,12 @@ import (
 	"github.com/go-resty/resty/v2"
 )
 
+type SecretAPIResponse struct {
+	ClientId     string `json:"ClientId"`
+	ClientSecret string `json:"ClientSecret"`
+	AppId        string `json:"AppId"`
+}
+
 func AddUserToOrg(jwt, userId string, roles []string, orgId string) (bool, error) {
 	var err types.ZitadelError
 	type AddUserToOrgRequest struct {
@@ -87,29 +93,29 @@ func CreateAction(jwt, orgId, name, script string, allowedToFail bool) (string, 
 	return createActionResponse.Id, nil
 }
 
-func AddDefaultUserGrantAction(jwt, orgId, projectId string) string {
-	//read secret from file
-	type SecretAPIResponse struct {
-		ClientId     string `json:"ClientId"`
-		ClientSecret string `json:"ClientSecret"`
-		AppId        string `json:"AppId"`
-	}
+func ReadDefaultAPISecret() *SecretAPIResponse {
+	// read secret from file
 
 	var apiResponse SecretAPIResponse
-
 	jsonData, err := ioutil.ReadFile("./machinekey/default_api_secret.json")
+
 	if err != nil {
 		fmt.Println("Error:", err)
-		return ""
+		return nil
 	}
 
 	err = json.Unmarshal(jsonData, &apiResponse)
 	if err != nil {
 		fmt.Println("Error:", err)
-		return ""
+		return nil
 	}
 
-	res, _ := CreateAction(jwt, orgId, "addGrant", "function addGrant(ctx, api) {let http = require('zitadel/http'); let logger = require('zitadel/log'); logger.log('ctx', ctx.v1); api.userGrants.push({projectID: '"+projectId+"',roles: ['USER']}); var user = http.fetch('"+os.Getenv("API_DOMAIN")+"/api/v1/test', {method: 'POST',body: { 'id': 'user 1'}}).json();logger.log(user.id); }", true)
+	return &apiResponse
+}
+
+func AddDefaultUserGrantAction(jwt, orgId, projectId string) string {
+	apiResponse := ReadDefaultAPISecret()
+	res, _ := CreateAction(jwt, orgId, "addGrant", "function addGrant(ctx, api) {let http = require('zitadel/http'); let logger = require('zitadel/log'); logger.log('ctx', ctx.v1); api.userGrants.push({projectID: '"+projectId+"',roles: ['USER']}); var user = http.fetch('"+os.Getenv("API_DOMAIN")+"/api/v1/idp/import', {method: 'POST',body: { 'id': ctx.v1.getUser().id, 'clientId': '"+apiResponse.ClientId+"', 'secret': '"+apiResponse.ClientSecret+"'}}).json();logger.log(user.id); }", true)
 	return res
 
 	// http.fetch('"+os.Getenv("API_DOMAIN")+"/api/v1/test', {method: 'POST',body: {'id': ctx.v1.getUser().id}, 'clientId': '"+apiResponse.ClientId+"', 'secret': '"+apiResponse.ClientSecret+"' }).json();

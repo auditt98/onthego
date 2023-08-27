@@ -13,6 +13,7 @@ import (
 	"github.com/auditt98/onthego/db"
 	hv1 "github.com/auditt98/onthego/handlers/v1"
 	hv2 "github.com/auditt98/onthego/handlers/v2"
+	"github.com/auditt98/onthego/middlewares"
 	"github.com/auditt98/onthego/utils"
 	"github.com/auditt98/onthego/zitadel"
 	rkboot "github.com/rookie-ninja/rk-boot/v2"
@@ -168,11 +169,10 @@ func main() {
 	//router
 	v1 := entry.Router.Group("/api/v1")
 	{
-		// article := hv1.ArticleHandlerV1{}
 		user := hv1.UserHandlerV1{}
-		// v1.GET("/test", introspection.HandlerFunc(writeOK), article.Get)
-		// v1.POST("/test", article.Update)
-		v1.POST("/test", user.AddUserFromIdP)
+		v1.POST("/idp/import", user.AddUserFromIdP)
+		v1.POST("/test", middlewares.TokenIntrospectionMiddleware(), user.Test)
+		v1.POST("/test2", user.TestPublic)
 	}
 	v2 := entry.Router.Group("/api/v2")
 	{

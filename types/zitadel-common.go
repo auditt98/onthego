@@ -5,3 +5,17 @@ type ZitadelError struct {
 	Message string      `json:"message"`
 	Details interface{} `json:"details"`
 }
+
+type IntrospectionResult struct {
+	Active    bool     `json:"active"`
+	Aud       []string `json:"aud"`
+	ClientId  string   `json:"client_id"`
+	Exp       int      `json:"exp"`
+	Iat       int      `json:"iat"`
+	Iss       string   `json:"iss"`
+	Jti       string   `json:"jti"`
+	Nbf       int      `json:"nbf"`
+	Scope     string   `json:"scope"`
+	TokenType string   `json:"token_type"`
+	Username  string   `json:"username"`
+}

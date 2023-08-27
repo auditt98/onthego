@@ -1,6 +1,7 @@
 package zitadel
 
 import (
+	"encoding/base64"
 	"encoding/json"
 	"fmt"
 	"io/ioutil"
@@ -248,6 +249,41 @@ func VerifySecret(clientId, secret string) bool {
 	}
 }
 
-func TokenInstropection() {
+func generateBasicAuthHeader(clientID, clientSecret string) string {
+	encodedClientID := url.QueryEscape(clientID)
+	encodedClientSecret := url.QueryEscape(clientSecret)
 
+	credentials := encodedClientID + ":" + encodedClientSecret
+	encodedCredentials := base64.StdEncoding.EncodeToString([]byte(credentials))
+	fmt.Println("Encoded credentials: ", "Basic "+encodedCredentials)
+	return "Basic " + encodedCredentials
+}
+
+func IntrospectToken(token string) (*types.IntrospectionResult, error) {
+	apiSecret := ReadDefaultAPISecret()
+	if apiSecret == nil {
+		fmt.Println("Error reading API secret")
+		return nil, fmt.Errorf("Error reading API secret")
+	}
+
+	var introspectResponse types.IntrospectionResult
+	_, err := resty.New().R().
+		SetHeader("Content-Type", "application/x-www-form-urlencoded").
+		SetHeader("Authorization", generateBasicAuthHeader(apiSecret.ClientId, apiSecret.ClientSecret)).
+		SetHeader("Accept", "application/json").
+		SetFormData(map[string]string{
+			"token": token,
+		}).
+		SetResult(&introspectResponse).
+		Post(os.Getenv("ZITADEL_DOMAIN") + "/oauth/v2/introspect")
+	if err != nil {
+		fmt.Println("Invalid client token", err)
+		return nil, err
+	}
+	b, _ := json.Marshal(introspectResponse)
+	fmt.Println("Introspection result: ", string(b))
+	if introspectResponse.Active == false {
+		return nil, fmt.Errorf("Invalid token")
+	}
+	return &introspectResponse, nil
 }
