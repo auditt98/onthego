@@ -267,7 +267,7 @@ func IntrospectToken(token string) (*types.IntrospectionResult, error) {
 	}
 
 	var introspectResponse types.IntrospectionResult
-	_, err := resty.New().R().
+	resp, err := resty.New().R().
 		SetHeader("Content-Type", "application/x-www-form-urlencoded").
 		SetHeader("Authorization", generateBasicAuthHeader(apiSecret.ClientId, apiSecret.ClientSecret)).
 		SetHeader("Accept", "application/json").
@@ -280,6 +280,7 @@ func IntrospectToken(token string) (*types.IntrospectionResult, error) {
 		fmt.Println("Invalid client token", err)
 		return nil, err
 	}
+	fmt.Println(string(resp.Body()))
 	b, _ := json.Marshal(introspectResponse)
 	fmt.Println("Introspection result: ", string(b))
 	if introspectResponse.Active == false {

@@ -12,10 +12,13 @@ import (
 	"gorm.io/gorm"
 )
 
+var DB *gorm.DB
+
 // Init ...
 func Init() {
 
 	db_instance, err := ResolveDB()
+	DB = db_instance
 	if err == nil {
 		fmt.Println("Running migrations...")
 		db_instance.AutoMigrate(&models.User{}, &models.Album{}, &models.Photo{}, &models.Comment{}, &models.ImageSize{}, &models.Like{})

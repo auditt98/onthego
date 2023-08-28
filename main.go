@@ -173,6 +173,10 @@ func main() {
 		v1.POST("/idp/import", user.AddUserFromIdP)
 		v1.POST("/test", middlewares.TokenIntrospectionMiddleware(), user.Test)
 		v1.POST("/test2", user.TestPublic)
+
+		album := hv1.AlbumHandlerV1{}
+		v1.POST("/album", album.CreateAlbum)
+
 	}
 	v2 := entry.Router.Group("/api/v2")
 	{
