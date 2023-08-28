@@ -13,7 +13,8 @@ import (
 type AlbumHandlerV1 struct{}
 
 func (ctrl AlbumHandlerV1) CreateAlbum(c *gin.Context) {
-	albumValidator := validatorsV1.AlbumValidator{}
+	introspection, _ := c.Get("introspectionResult")
+	albumValidator := validatorsV1.NewAlbumValidator{}
 	if err := c.ShouldBindJSON(&albumValidator); err != nil {
 		c.JSON(http.StatusNotAcceptable, types.ErrorResponse{Error: types.Error{
 			Code:    http.StatusNotAcceptable,
@@ -24,8 +25,61 @@ func (ctrl AlbumHandlerV1) CreateAlbum(c *gin.Context) {
 		return
 	}
 	newAlbum := models.Album{}
+	user := models.User{
+		Id: introspection.(*types.IntrospectionResult).Sub,
+	}
 	newAlbum.Name = albumValidator.Name
-	db.DB.Create(&newAlbum)
+	newAlbum.Users = append(newAlbum.Users, &user)
+	result := db.DB.Create(&newAlbum)
+	if result.Error != nil {
+		c.JSON(http.StatusInternalServerError, types.ErrorResponse{Error: types.Error{
+			Code:    http.StatusInternalServerError,
+			Message: "Error creating album",
+			Details: result.Error,
+		}})
+		c.Abort()
+		return
+	}
+	c.JSON(http.StatusOK, types.SuccessResponse{Data: newAlbum})
+	return
+}
+
+func (ctrl AlbumHandlerV1) AddUserToAlbum(c *gin.Context) {
+	introspection, _ := c.Get("introspectionResult")
+	addUserToAlbumValidator := validatorsV1.AddUserToAlbumValidator{}
+	if err := c.ShouldBindJSON(&addUserToAlbumValidator); err != nil {
+		c.JSON(http.StatusNotAcceptable, types.ErrorResponse{Error: types.Error{
+			Code:    http.StatusNotAcceptable,
+			Message: err.Error(),
+			Details: err,
+		}})
+		c.Abort()
+		return
+	}
+
+	var album models.Album
+
+	album = models.Album{
+		ID: addUserToAlbumValidator.AlbumID,
+	}
+
+	for _, userId := range addUserToAlbumValidator.UserIds {
+		album.Users = append(album.Users, &models.User{
+			Id: userId,
+		})
+	}
+
+	result := db.DB.Save(&album)
+	if result.Error != nil {
+		c.JSON(http.StatusInternalServerError, types.ErrorResponse{Error: types.Error{
+			Code:    http.StatusInternalServerError,
+			Message: "Error adding user to album",
+			Details: result.Error,
+		}})
+		c.Abort()
+		return
+	}
+	c.JSON(http.StatusOK, types.SuccessResponse{Data: album})
 
 	return
 }

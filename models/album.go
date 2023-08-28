@@ -4,15 +4,13 @@ import "time"
 
 // User ...
 type Album struct {
-	ID uint `json:"id" gorm:"primaryKey" `
-
-	Name      string
-	CreatedAt time.Time
-	UpdatedAt time.Time
-	Users     []*User `gorm:"many2many:album_users;"`
-
-	Likes      []*User `gorm:"many2many:album_likes;"`
-	LikesCount int
+	ID         uint `json:"id" gorm:"primaryKey" `
+	CreatedAt  time.Time
+	UpdatedAt  time.Time
+	Name       string
+	Users      []*User `gorm:"many2many:user_albums;"`
+	Photos     []*Photo
+	Likes      []*Like `gorm:"polymorphic:Liker;"`
 	Comments   []*Comment
-	Photos     []Photo
+	LikesCount int
 }

@@ -1,9 +1,9 @@
 package types
 
 type ZitadelError struct {
-	Code    int         `json:"code"`
-	Message string      `json:"message"`
-	Details interface{} `json:"details"`
+	Code    int    `json:"code"`
+	Message string `json:"message"`
+	Details any    `json:"details"`
 }
 
 type IntrospectionResult struct {
@@ -18,4 +18,6 @@ type IntrospectionResult struct {
 	Scope     string   `json:"scope"`
 	TokenType string   `json:"token_type"`
 	Username  string   `json:"username"`
+	Sub       string   `json:"sub"`
+	Roles     any      `json:"urn:zitadel:iam:org:project:roles"`
 }

@@ -281,8 +281,6 @@ func IntrospectToken(token string) (*types.IntrospectionResult, error) {
 		return nil, err
 	}
 	fmt.Println(string(resp.Body()))
-	b, _ := json.Marshal(introspectResponse)
-	fmt.Println("Introspection result: ", string(b))
 	if introspectResponse.Active == false {
 		return nil, fmt.Errorf("Invalid token")
 	}
