@@ -13,6 +13,7 @@ func TokenIntrospectionMiddleware() gin.HandlerFunc {
 		authHeader := c.GetHeader("Authorization")
 		if authHeader == "" {
 			c.AbortWithStatusJSON(401, types.ZitadelError{Code: 401, Message: "No Authorization header found"})
+			return
 		}
 		authParts := strings.Split(authHeader, " ")
 		if len(authParts) != 2 || authParts[0] != "Bearer" {

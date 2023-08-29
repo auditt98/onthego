@@ -177,7 +177,7 @@ func main() {
 		album := hv1.AlbumHandlerV1{}
 		v1.POST("/albums", middlewares.TokenIntrospectionMiddleware(), album.CreateAlbum)
 		v1.POST("/albums/:album_id/users", middlewares.TokenIntrospectionMiddleware(), album.AddUserToAlbum)
-
+		v1.GET("/albums", middlewares.TokenIntrospectionMiddleware(), album.GetAlbums)
 	}
 	v2 := entry.Router.Group("/api/v2")
 	{

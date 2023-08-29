@@ -1,7 +1,6 @@
 package handlers
 
 import (
-	"fmt"
 	"net/http"
 
 	"github.com/auditt98/onthego/db"
@@ -58,87 +57,69 @@ func (ctrl AlbumHandlerV1) AddUserToAlbum(c *gin.Context) {
 		return
 	}
 	albumID := c.Param("album_id")
-	fmt.Println("albumID", albumID)
-	var resultAlbums []models.Album
-	db.DB.Table("albums").InnerJoins("users").Find(&resultAlbums, map[string]interface{}{
-		"id": albumID,
-	})
+	var resultAlbum models.Album
+	db.DB.Preload("Users").First(&resultAlbum, albumID)
+	var isCurrentUserInAlbum bool
+	var isUserAlreadyInAlbum bool
 
-	// db.DB.Table("albums").Preload("Users", func(d *gorm.DB) *gorm.DB {
-	// 	return d.Where("id = ?", introspection.(*types.IntrospectionResult).Sub)
-	// }).Find(&resultAlbums, map[string]interface{}{
-	// 	"id": albumID,
-	// })
+	for _, user := range resultAlbum.Users {
+		if user.Id == introspection.(*types.IntrospectionResult).Sub {
+			isCurrentUserInAlbum = true
+		}
+		if user.Id == addUserToAlbumValidator.UserId {
+			isUserAlreadyInAlbum = true
+		}
+	}
 
-	db.DB.Table("albums").Preload("Users").Where("id = ? and Users.id = ?", albumID, introspection.(*types.IntrospectionResult).Sub).Find(&resultAlbums)
+	if !isCurrentUserInAlbum {
+		c.JSON(http.StatusForbidden, types.ErrorResponse{Error: types.Error{
+			Code:    http.StatusForbidden,
+			Message: "Current user does not belong to the album",
+		}})
+		c.Abort()
+		return
+	}
 
-	// db.DB.Preload("Users", {
-	// 	"id": introspection.(*types.IntrospectionResult).Sub,
-	// }).Find(&resultAlbums)
+	if isUserAlreadyInAlbum {
+		c.JSON(http.StatusForbidden, types.ErrorResponse{Error: types.Error{
+			Code:    http.StatusForbidden,
+			Message: "User already belongs to the album",
+		}})
+		c.Abort()
+		return
+	}
 
-	// params := db.QueryParams{
-	// 	Where: db.WhereParams{
-	// 		And: []db.WhereParams{
-	// 			{
-	// 				Attr: map[string]db.AttributeParams{
-	// 					"id": {
-	// 						Eq: albumID,
-	// 					},
-	// 				},
-	// 			},
-	// 			{
-	// 				Attr: map[string]db.AttributeParams{
-	// 					"Users.id": {
-	// 						Contains: introspection.(*types.IntrospectionResult).Sub,
-	// 					},
-	// 				},
-	// 			},
-	// 		},
-	// 	},
-	// 	OrderBy:  []string{"-id"},
-	// 	Limit:    1,
-	// 	Offset:   0,
-	// 	Populate: []string{"Users"},
-	// }
+	var addUser models.User
+	db.DB.First(&addUser, addUserToAlbumValidator.UserId)
+	if addUser.Id == "" {
+		c.JSON(http.StatusNotFound, types.ErrorResponse{Error: types.Error{
+			Code:    http.StatusNotFound,
+			Message: "User not found",
+		}})
+		c.Abort()
+		return
+	}
 
-	// albums := []models.Album{}
-	// db.Query("albums", params, &albums)
-	// fmt.Println("albums", albums)
+	resultAlbum.Users = append(resultAlbum.Users, &addUser)
+	db.DB.Save(&resultAlbum)
+	err := db.DB.Save(&resultAlbum).Error
+	if err != nil {
+		c.JSON(http.StatusInternalServerError, types.ErrorResponse{Error: types.Error{
+			Code:    http.StatusInternalServerError,
+			Message: err.Error(),
+		}})
+		c.Abort()
+		return
+	}
+	c.JSON(http.StatusOK, types.SuccessResponse{Data: resultAlbum})
+	return
+}
 
-	// if result.Error.Error() != "" {
-	// 	c.JSON(http.StatusInternalServerError, types.ErrorResponse{Error: types.Error{
-	// 		Code:    http.StatusInternalServerError,
-	// 		Message: "Error adding user to album",
-	// 		Details: result.Error.Error(),
-	// 	}})
-	// 	c.Abort()
-	// 	return
-	// }
-	c.JSON(http.StatusOK, types.SuccessResponse{Data: resultAlbums})
-
-	// var album models.Album
-
-	// album = models.Album{
-	// 	ID: addUserToAlbumValidator.AlbumID,
-	// }
-
-	// for _, userId := range addUserToAlbumValidator.UserIds {
-	// 	album.Users = append(album.Users, &models.User{
-	// 		Id: userId,
-	// 	})
-	// }
-
-	// result := db.DB.Save(&album)
-	// if result.Error != nil {
-	// 	c.JSON(http.StatusInternalServerError, types.ErrorResponse{Error: types.Error{
-	// 		Code:    http.StatusInternalServerError,
-	// 		Message: "Error adding user to album",
-	// 		Details: result.Error,
-	// 	}})
-	// 	c.Abort()
-	// 	return
-	// }
-	// c.JSON(http.StatusOK, types.SuccessResponse{Data: album})
-
+func (ctrl AlbumHandlerV1) GetAlbums(c *gin.Context) {
+	introspection, _ := c.Get("introspectionResult")
+	userID := introspection.(*types.IntrospectionResult).Sub
+	var user models.User
+	db.DB.Preload("Albums").First(&user, userID)
+	c.JSON(http.StatusOK, types.SuccessResponse{Data: user.Albums})
 	return
 }
