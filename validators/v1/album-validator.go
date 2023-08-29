@@ -5,6 +5,5 @@ type NewAlbumValidator struct {
 }
 
 type AddUserToAlbumValidator struct {
-	AlbumID uint     `json:"album_id" binding:"required"`
 	UserIds []string `json:"user_ids" binding:"required"`
 }

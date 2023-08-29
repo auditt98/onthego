@@ -1,6 +1,7 @@
 package handlers
 
 import (
+	"fmt"
 	"net/http"
 
 	"github.com/auditt98/onthego/db"
@@ -56,30 +57,88 @@ func (ctrl AlbumHandlerV1) AddUserToAlbum(c *gin.Context) {
 		c.Abort()
 		return
 	}
+	albumID := c.Param("album_id")
+	fmt.Println("albumID", albumID)
+	var resultAlbums []models.Album
+	db.DB.Table("albums").InnerJoins("users").Find(&resultAlbums, map[string]interface{}{
+		"id": albumID,
+	})
 
-	var album models.Album
+	// db.DB.Table("albums").Preload("Users", func(d *gorm.DB) *gorm.DB {
+	// 	return d.Where("id = ?", introspection.(*types.IntrospectionResult).Sub)
+	// }).Find(&resultAlbums, map[string]interface{}{
+	// 	"id": albumID,
+	// })
 
-	album = models.Album{
-		ID: addUserToAlbumValidator.AlbumID,
-	}
+	db.DB.Table("albums").Preload("Users").Where("id = ? and Users.id = ?", albumID, introspection.(*types.IntrospectionResult).Sub).Find(&resultAlbums)
 
-	for _, userId := range addUserToAlbumValidator.UserIds {
-		album.Users = append(album.Users, &models.User{
-			Id: userId,
-		})
-	}
+	// db.DB.Preload("Users", {
+	// 	"id": introspection.(*types.IntrospectionResult).Sub,
+	// }).Find(&resultAlbums)
 
-	result := db.DB.Save(&album)
-	if result.Error != nil {
-		c.JSON(http.StatusInternalServerError, types.ErrorResponse{Error: types.Error{
-			Code:    http.StatusInternalServerError,
-			Message: "Error adding user to album",
-			Details: result.Error,
-		}})
-		c.Abort()
-		return
-	}
-	c.JSON(http.StatusOK, types.SuccessResponse{Data: album})
+	// params := db.QueryParams{
+	// 	Where: db.WhereParams{
+	// 		And: []db.WhereParams{
+	// 			{
+	// 				Attr: map[string]db.AttributeParams{
+	// 					"id": {
+	// 						Eq: albumID,
+	// 					},
+	// 				},
+	// 			},
+	// 			{
+	// 				Attr: map[string]db.AttributeParams{
+	// 					"Users.id": {
+	// 						Contains: introspection.(*types.IntrospectionResult).Sub,
+	// 					},
+	// 				},
+	// 			},
+	// 		},
+	// 	},
+	// 	OrderBy:  []string{"-id"},
+	// 	Limit:    1,
+	// 	Offset:   0,
+	// 	Populate: []string{"Users"},
+	// }
+
+	// albums := []models.Album{}
+	// db.Query("albums", params, &albums)
+	// fmt.Println("albums", albums)
+
+	// if result.Error.Error() != "" {
+	// 	c.JSON(http.StatusInternalServerError, types.ErrorResponse{Error: types.Error{
+	// 		Code:    http.StatusInternalServerError,
+	// 		Message: "Error adding user to album",
+	// 		Details: result.Error.Error(),
+	// 	}})
+	// 	c.Abort()
+	// 	return
+	// }
+	c.JSON(http.StatusOK, types.SuccessResponse{Data: resultAlbums})
+
+	// var album models.Album
+
+	// album = models.Album{
+	// 	ID: addUserToAlbumValidator.AlbumID,
+	// }
+
+	// for _, userId := range addUserToAlbumValidator.UserIds {
+	// 	album.Users = append(album.Users, &models.User{
+	// 		Id: userId,
+	// 	})
+	// }
+
+	// result := db.DB.Save(&album)
+	// if result.Error != nil {
+	// 	c.JSON(http.StatusInternalServerError, types.ErrorResponse{Error: types.Error{
+	// 		Code:    http.StatusInternalServerError,
+	// 		Message: "Error adding user to album",
+	// 		Details: result.Error,
+	// 	}})
+	// 	c.Abort()
+	// 	return
+	// }
+	// c.JSON(http.StatusOK, types.SuccessResponse{Data: album})
 
 	return
 }

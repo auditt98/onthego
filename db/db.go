@@ -6,6 +6,7 @@ import (
 	"strings"
 
 	"github.com/auditt98/onthego/models"
+	"github.com/goccy/go-json"
 	"gorm.io/driver/mysql"
 	"gorm.io/driver/postgres"
 	"gorm.io/driver/sqlserver"
@@ -55,10 +56,11 @@ func ResolveDB() (*gorm.DB, error) {
 // Pipeline for query: Population -> Filter -> Sort -> Paging -> Projection
 func Query(tableName string, params QueryParams, result interface{}) *gorm.DB {
 	queryEngine := new(QueryEngine)
-	instance, _ := ResolveDB()
 	queryEngine.TableName = tableName
-	queryEngine.Ref = instance.Table(tableName)
+	queryEngine.Ref = DB.Table(tableName)
 	queryEngine.Ref = queryEngine.Populate(params).Filter(params).Sort(params).Paginate(params).Projection(params).ToGorm().Find(result)
+	b, _ := json.Marshal(result)
+	fmt.Println("Query result: ", string(b))
 	return queryEngine.Ref
 }
 
