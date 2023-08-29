@@ -7,3 +7,7 @@ type NewAlbumValidator struct {
 type AddUserToAlbumValidator struct {
 	UserId string `json:"user_id" binding:"required"`
 }
+
+type RemoveUserFromAlbumValidator struct {
+	UserId string `json:"user_id" binding:"required"`
+}

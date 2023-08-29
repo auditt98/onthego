@@ -89,18 +89,7 @@ func (ctrl AlbumHandlerV1) AddUserToAlbum(c *gin.Context) {
 		return
 	}
 
-	var addUser models.User
-	db.DB.First(&addUser, addUserToAlbumValidator.UserId)
-	if addUser.Id == "" {
-		c.JSON(http.StatusNotFound, types.ErrorResponse{Error: types.Error{
-			Code:    http.StatusNotFound,
-			Message: "User not found",
-		}})
-		c.Abort()
-		return
-	}
-
-	resultAlbum.Users = append(resultAlbum.Users, &addUser)
+	resultAlbum.Users = append(resultAlbum.Users, &models.User{Id: addUserToAlbumValidator.UserId})
 	db.DB.Save(&resultAlbum)
 	err := db.DB.Save(&resultAlbum).Error
 	if err != nil {
@@ -119,7 +108,82 @@ func (ctrl AlbumHandlerV1) GetAlbums(c *gin.Context) {
 	introspection, _ := c.Get("introspectionResult")
 	userID := introspection.(*types.IntrospectionResult).Sub
 	var user models.User
-	db.DB.Preload("Albums").First(&user, userID)
+	db.DB.Preload("Albums.Users").First(&user, userID)
 	c.JSON(http.StatusOK, types.SuccessResponse{Data: user.Albums})
 	return
+}
+
+func (ctrl AlbumHandlerV1) RemoveUserFromAlbum(c *gin.Context) {
+	introspection, _ := c.Get("introspectionResult")
+
+	albumID := c.Param("album_id")
+	userID := c.Param("user_id")
+
+	var resultAlbum models.Album
+	db.DB.Preload("Users").First(&resultAlbum, albumID)
+	var isCurrentUserInAlbum bool
+	var isUserAlreadyInAlbum bool
+
+	for _, user := range resultAlbum.Users {
+		if user.Id == introspection.(*types.IntrospectionResult).Sub {
+			isCurrentUserInAlbum = true
+		}
+		if user.Id == userID {
+			isUserAlreadyInAlbum = true
+		}
+	}
+
+	if !isCurrentUserInAlbum {
+		c.JSON(http.StatusForbidden, types.ErrorResponse{Error: types.Error{
+			Code:    http.StatusForbidden,
+			Message: "Current user does not belong to the album",
+		}})
+		c.Abort()
+		return
+	}
+
+	if !isUserAlreadyInAlbum {
+		c.JSON(http.StatusForbidden, types.ErrorResponse{Error: types.Error{
+			Code:    http.StatusForbidden,
+			Message: "User does not belong to the album",
+		}})
+		c.Abort()
+		return
+	}
+
+	var updatedUsers []*models.User
+	userIDToRemove := userID
+	for _, user := range resultAlbum.Users {
+		if user.Id != userIDToRemove {
+			updatedUsers = append(updatedUsers, user)
+		}
+	}
+
+	resultAlbum.Users = updatedUsers
+	if err := db.DB.Save(&resultAlbum).Error; err != nil {
+		c.JSON(http.StatusInternalServerError, types.ErrorResponse{Error: types.Error{
+			Code:    http.StatusInternalServerError,
+			Message: err.Error(),
+		}})
+		c.Abort()
+		return
+	}
+	//if current user is not in the album anymore,
+	var currentUserInUpdatedAlbum bool
+	for _, user := range resultAlbum.Users {
+		if user.Id == introspection.(*types.IntrospectionResult).Sub {
+			currentUserInUpdatedAlbum = true
+			break
+		}
+	}
+
+	if !currentUserInUpdatedAlbum {
+		c.JSON(http.StatusForbidden, types.ErrorResponse{Error: types.Error{
+			Code:    http.StatusForbidden,
+			Message: "Current user is no longer in the album",
+		}})
+		c.Abort()
+		return
+	}
+	c.JSON(http.StatusOK, types.SuccessResponse{Data: resultAlbum})
 }
