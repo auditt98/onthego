@@ -1,15 +1,18 @@
 package models
 
-import "gorm.io/gorm"
+import "time"
 
 type Photo struct {
-	gorm.Model
-	BaseName string
-	UserID   uint
-	User     *User
-	AlbumID  uint
-	Album    *Album
-	Sizes    []*ImageSize
-	Likes    []*Like `gorm:"polymorphic:Liker;"`
-	Comments []*Comment
+	ID        uint `gorm:"primarykey"`
+	CreatedAt time.Time
+	UpdatedAt time.Time
+	BaseName  string
+	BaseUrl   string
+	UserID    uint
+	User      *User
+	AlbumID   uint
+	Album     *Album
+	Sizes     []*ImageSize
+	Likes     []*Like `gorm:"polymorphic:Liker;"`
+	Comments  []*Comment
 }

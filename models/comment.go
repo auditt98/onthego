@@ -1,10 +1,12 @@
 package models
 
-import "gorm.io/gorm"
+import "time"
 
 // User ...
 type Comment struct {
-	gorm.Model
+	ID            uint `gorm:"primarykey"`
+	CreatedAt     time.Time
+	UpdatedAt     time.Time
 	Content       string
 	AlbumID       uint
 	Album         *Album

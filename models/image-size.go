@@ -1,13 +1,15 @@
 package models
 
-import "gorm.io/gorm"
+import "time"
 
 type ImageSize struct {
-	gorm.Model
-	SizeName string
-	Width    uint
-	Height   uint
-	URL      string
-	PhotoID  uint
-	Photo    *Photo
+	ID        uint `gorm:"primarykey"`
+	CreatedAt time.Time
+	UpdatedAt time.Time
+	SizeName  string
+	Width     uint
+	Height    uint
+	URL       string
+	PhotoID   uint
+	Photo     *Photo
 }

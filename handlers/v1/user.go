@@ -28,7 +28,7 @@ func (ctrl UserHandlerV1) AddUserFromIdP(c *gin.Context) {
 		return
 	}
 	newUser := models.User{}
-	newUser.Id = userImportValidator.Id
+	newUser.ID = userImportValidator.ID
 	instance, err := db.ResolveDB()
 	if err != nil {
 		c.JSON(http.StatusInternalServerError, gin.H{"message": "Error resolving database"})

@@ -1,9 +1,11 @@
 package models
 
-import "gorm.io/gorm"
+import "time"
 
 type Like struct {
-	gorm.Model
+	ID        uint `gorm:"primarykey"`
+	CreatedAt time.Time
+	UpdatedAt time.Time
 	LikerID   uint
 	LikerType string
 	AlbumID   uint

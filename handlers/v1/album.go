@@ -26,7 +26,7 @@ func (ctrl AlbumHandlerV1) CreateAlbum(c *gin.Context) {
 	}
 	newAlbum := models.Album{}
 	user := models.User{
-		Id: introspection.(*types.IntrospectionResult).Sub,
+		ID: introspection.(*types.IntrospectionResult).Sub,
 	}
 	newAlbum.Name = albumValidator.Name
 	newAlbum.Users = append(newAlbum.Users, &user)
@@ -63,10 +63,10 @@ func (ctrl AlbumHandlerV1) AddUserToAlbum(c *gin.Context) {
 	var isUserAlreadyInAlbum bool
 
 	for _, user := range resultAlbum.Users {
-		if user.Id == introspection.(*types.IntrospectionResult).Sub {
+		if user.ID == introspection.(*types.IntrospectionResult).Sub {
 			isCurrentUserInAlbum = true
 		}
-		if user.Id == addUserToAlbumValidator.UserId {
+		if user.ID == addUserToAlbumValidator.UserId {
 			isUserAlreadyInAlbum = true
 		}
 	}
@@ -89,7 +89,7 @@ func (ctrl AlbumHandlerV1) AddUserToAlbum(c *gin.Context) {
 		return
 	}
 
-	resultAlbum.Users = append(resultAlbum.Users, &models.User{Id: addUserToAlbumValidator.UserId})
+	resultAlbum.Users = append(resultAlbum.Users, &models.User{ID: addUserToAlbumValidator.UserId})
 	db.DB.Save(&resultAlbum)
 	err := db.DB.Save(&resultAlbum).Error
 	if err != nil {
@@ -125,10 +125,10 @@ func (ctrl AlbumHandlerV1) RemoveUserFromAlbum(c *gin.Context) {
 	var isUserAlreadyInAlbum bool
 
 	for _, user := range resultAlbum.Users {
-		if user.Id == introspection.(*types.IntrospectionResult).Sub {
+		if user.ID == introspection.(*types.IntrospectionResult).Sub {
 			isCurrentUserInAlbum = true
 		}
-		if user.Id == userID {
+		if user.ID == userID {
 			isUserAlreadyInAlbum = true
 		}
 	}
@@ -154,7 +154,7 @@ func (ctrl AlbumHandlerV1) RemoveUserFromAlbum(c *gin.Context) {
 	var updatedUsers []*models.User
 	userIDToRemove := userID
 	for _, user := range resultAlbum.Users {
-		if user.Id != userIDToRemove {
+		if user.ID != userIDToRemove {
 			updatedUsers = append(updatedUsers, user)
 		}
 	}
@@ -171,7 +171,7 @@ func (ctrl AlbumHandlerV1) RemoveUserFromAlbum(c *gin.Context) {
 	//if current user is not in the album anymore,
 	var currentUserInUpdatedAlbum bool
 	for _, user := range resultAlbum.Users {
-		if user.Id == introspection.(*types.IntrospectionResult).Sub {
+		if user.ID == introspection.(*types.IntrospectionResult).Sub {
 			currentUserInUpdatedAlbum = true
 			break
 		}
