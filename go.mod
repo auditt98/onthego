@@ -84,6 +84,9 @@ require (
 	github.com/spf13/pflag v1.0.5 // indirect
 	github.com/spf13/viper v1.12.0 // indirect
 	github.com/subosito/gotenv v1.3.0 // indirect
+	github.com/survivorbat/go-tsyncmap v0.0.0 // indirect
+	github.com/survivorbat/gorm-deep-filtering v0.0.8 // indirect
+	github.com/survivorbat/gorm-query-convert v0.0.1 // indirect
 	github.com/ugorji/go/codec v1.2.7 // indirect
 	go.opentelemetry.io/contrib v1.8.0 // indirect
 	go.opentelemetry.io/otel v1.10.0 // indirect

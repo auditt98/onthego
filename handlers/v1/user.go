@@ -49,10 +49,7 @@ func (ctrl UserHandlerV1) AddUserFromIdP(c *gin.Context) {
 func (ctrl UserHandlerV1) Test(c *gin.Context) {
 	introspectionResult, ok := c.Get("introspectionResult")
 	if !ok {
-		c.JSON(500, types.ErrorResponse{Error: types.Error{
-			Code:    500,
-			Message: "Introspection result not found",
-		}})
+		c.JSON(500, types.Error{Code: 500, Message: "Introspection result not found"})
 	} else {
 		c.JSON(200, types.SuccessResponse{Data: introspectionResult})
 	}
@@ -60,8 +57,38 @@ func (ctrl UserHandlerV1) Test(c *gin.Context) {
 }
 
 func (ctrl UserHandlerV1) TestPublic(c *gin.Context) {
+	queryObject, _ := c.Get("queryObject")
+	// albums := []models.Album{}
+	// res := db.ToQuery(queryObject, &albums)
+	// c.JSON(200, types.SuccessResponse{Data: map[string]interface{}{"query": query, "queryObject": queryObject}})
+	// filter2 := map[string]any{
+	// 	"id": "895409660164210689",
+	// }
+	// var albums2 []models.Album
+	// str := db.DB.ToSQL(func(tx *gorm.DB) *gorm.DB {
+	// 	return tx.Where(filter2).Find(&albums2)
+	// })
+	c.JSON(200, queryObject)
+	// c.JSON(200, res)
+	// c.JSON(200, albums)
+	// c.JSON(200, query)
+
+	return
 	// introspectionResult, ok := c.Get("introspectionResult")
-	c.JSON(200, types.SuccessResponse{Data: "Public endpoint"})
+	// filters := map[string]any{
+	// 	"name": []string{"Album 1", "Album 2"},
+	// }
+	// filter2 := map[string]any{
+	// 	"users": map[string]any{
+	// 		"id": "229409946817527811",
+	// 	},
+	// }
+	// var albums []models.Album
+	// result := db.DB.ToSQL(func(tx *gorm.DB) *gorm.DB {
+	// 	return tx.Or(filters).Or(filter2).Find(&albums)
+	// })
+	// c.JSON(200, result)
+	// c.JSON(200, types.SuccessResponse{Data: albums})
 	return
 }
 

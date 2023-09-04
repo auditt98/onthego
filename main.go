@@ -165,14 +165,12 @@ func main() {
 	entry := rkgin.GetGinEntry("ginboilerplate")
 
 	InitZitadel()
-	// introspection, err := http_mw.NewIntrospectionInterceptor(os.Getenv("ZITADEL_DOMAIN"), middleware.OSKeyPath())
-	//router
 	v1 := entry.Router.Group("/api/v1")
 	{
 		user := hv1.UserHandlerV1{}
 		v1.POST("/idp/import", user.AddUserFromIdP)
 		v1.POST("/test", middlewares.TokenIntrospectionMiddleware(), user.Test)
-		v1.POST("/test2", user.TestPublic)
+		v1.POST("/test2", middlewares.QueryAnalyzerMiddleware(), user.TestPublic)
 
 		album := hv1.AlbumHandlerV1{}
 		v1.GET("/albums", middlewares.TokenIntrospectionMiddleware(), album.GetAlbums)
@@ -185,6 +183,7 @@ func main() {
 		article := hv2.ArticleHandlerV2{}
 		v2.GET("/test", article.Get)
 	}
+
 	entry.Router.LoadHTMLGlob("./public/html/*")
 	// logger := rkentry.GlobalAppCtx.GetLoggerEntry("my-logger")
 	boot.Bootstrap(context.TODO())

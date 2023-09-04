@@ -7,6 +7,8 @@ import (
 
 	"github.com/auditt98/onthego/models"
 	"github.com/goccy/go-json"
+	deepgorm "github.com/survivorbat/gorm-deep-filtering"
+	gormqonvert "github.com/survivorbat/gorm-query-convert"
 	"gorm.io/driver/mysql"
 	"gorm.io/driver/postgres"
 	"gorm.io/driver/sqlserver"
@@ -19,6 +21,17 @@ var DB *gorm.DB
 func Init() {
 
 	db_instance, err := ResolveDB()
+	db_instance.Use(deepgorm.New())
+	config := gormqonvert.CharacterConfig{
+		GreaterThanPrefix:      ">",
+		GreaterOrEqualToPrefix: ">=",
+		LessThanPrefix:         "<",
+		LessOrEqualToPrefix:    "<=",
+		NotEqualToPrefix:       "!=",
+		LikePrefix:             "~",
+		NotLikePrefix:          "!~",
+	}
+	db_instance.Use(gormqonvert.New(config))
 	DB = db_instance
 	if err == nil {
 		fmt.Println("Running migrations...")
@@ -66,4 +79,27 @@ func Query(tableName string, params QueryParams, result interface{}) *gorm.DB {
 
 func (qe *QueryEngine) ToGorm() *gorm.DB {
 	return qe.Ref
+}
+
+func ToQuery(queryObject any, model any) string {
+	// result := DB.ToSQL(func(tx *gorm.DB) *gorm.DB {
+	// 	if queryObject == nil {
+	// 		return tx.Find(model)
+	// 	}
+	// 	filters := queryObject.(map[string]any)["filters"]
+	// 	if filters != nil {
+	// 		if filters.(map[string]any)["$or"] != nil {
+	// 			var orFilter map[string]any = filters.(map[string]any)["$or"].(map[string]any)
+	// 			//loop through keys and values of filters
+	// 			subQuery := tx
+	// 			for _, value := range orFilter {
+	// 				subQuery = subQuery.Or(value)
+	// 			}
+	// 			tx = tx.Where(subQuery)
+	// 		}
+	// 	}
+
+	// 	return tx.Find(&model)
+	// })
+	return ""
 }
