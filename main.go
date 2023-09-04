@@ -170,7 +170,7 @@ func main() {
 		user := hv1.UserHandlerV1{}
 		v1.POST("/idp/import", user.AddUserFromIdP)
 		v1.POST("/test", middlewares.TokenIntrospectionMiddleware(), user.Test)
-		v1.POST("/test2", middlewares.QueryAnalyzerMiddleware(), user.TestPublic)
+		v1.POST("/test2", user.TestPublic)
 
 		album := hv1.AlbumHandlerV1{}
 		v1.GET("/albums", middlewares.TokenIntrospectionMiddleware(), album.GetAlbums)

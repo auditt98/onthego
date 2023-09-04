@@ -57,8 +57,18 @@ func (ctrl UserHandlerV1) Test(c *gin.Context) {
 }
 
 func (ctrl UserHandlerV1) TestPublic(c *gin.Context) {
-	queryObject, _ := c.Get("queryObject")
-	// albums := []models.Album{}
+	// queryObject, _ := c.Get("queryObject")
+	userImportValidator := map[string]any{}
+	if c.ShouldBindJSON(&userImportValidator) != nil {
+		c.JSON(http.StatusNotAcceptable, gin.H{"message": "Invalid request data", "form": userImportValidator})
+		c.Abort()
+		return
+	}
+	c.JSON(200, userImportValidator)
+
+	albums := []models.Album{}
+	db.DB.Where(userImportValidator).Find(&albums)
+
 	// res := db.ToQuery(queryObject, &albums)
 	// c.JSON(200, types.SuccessResponse{Data: map[string]interface{}{"query": query, "queryObject": queryObject}})
 	// filter2 := map[string]any{
@@ -68,9 +78,9 @@ func (ctrl UserHandlerV1) TestPublic(c *gin.Context) {
 	// str := db.DB.ToSQL(func(tx *gorm.DB) *gorm.DB {
 	// 	return tx.Where(filter2).Find(&albums2)
 	// })
-	c.JSON(200, queryObject)
+	// c.JSON(200, queryObject)
 	// c.JSON(200, res)
-	// c.JSON(200, albums)
+	c.JSON(200, albums)
 	// c.JSON(200, query)
 
 	return
