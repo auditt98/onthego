@@ -1,7 +1,10 @@
 package types
 
 type SuccessResponse struct {
-	Data interface{} `json:"data"`
+	Data     interface{} `json:"data"`
+	Page     int         `json:"page"`
+	PageSize int         `json:"page_size"`
+	Total    int64       `json:"total"`
 }
 
 type Error struct {

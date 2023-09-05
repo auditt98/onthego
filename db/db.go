@@ -6,7 +6,6 @@ import (
 	"strings"
 
 	"github.com/auditt98/onthego/models"
-	"github.com/goccy/go-json"
 	deepgorm "github.com/survivorbat/gorm-deep-filtering"
 	gormqonvert "github.com/survivorbat/gorm-query-convert"
 	"gorm.io/driver/mysql"
@@ -67,39 +66,16 @@ func ResolveDB() (*gorm.DB, error) {
 }
 
 // Pipeline for query: Population -> Filter -> Sort -> Paging -> Projection
-func Query(tableName string, params QueryParams, result interface{}) *gorm.DB {
-	queryEngine := new(QueryEngine)
-	queryEngine.TableName = tableName
-	queryEngine.Ref = DB.Table(tableName)
-	queryEngine.Ref = queryEngine.Populate(params).Filter(params).Sort(params).Paginate(params).Projection(params).ToGorm().Find(result)
-	b, _ := json.Marshal(result)
-	fmt.Println("Query result: ", string(b))
-	return queryEngine.Ref
-}
+// func Query(tableName string, params QueryParams, result interface{}) *gorm.DB {
+// 	queryEngine := new(QueryEngine)
+// 	queryEngine.TableName = tableName
+// 	queryEngine.Ref = DB.Table(tableName)
+// 	queryEngine.Ref = queryEngine.Populate(params).Filter(params).Sort(params).Paginate(params).Projection(params).ToGorm().Find(result)
+// 	b, _ := json.Marshal(result)
+// 	fmt.Println("Query result: ", string(b))
+// 	return queryEngine.Ref
+// }
 
-func (qe *QueryEngine) ToGorm() *gorm.DB {
-	return qe.Ref
-}
-
-func ToQuery(queryObject any, model any) string {
-	// result := DB.ToSQL(func(tx *gorm.DB) *gorm.DB {
-	// 	if queryObject == nil {
-	// 		return tx.Find(model)
-	// 	}
-	// 	filters := queryObject.(map[string]any)["filters"]
-	// 	if filters != nil {
-	// 		if filters.(map[string]any)["$or"] != nil {
-	// 			var orFilter map[string]any = filters.(map[string]any)["$or"].(map[string]any)
-	// 			//loop through keys and values of filters
-	// 			subQuery := tx
-	// 			for _, value := range orFilter {
-	// 				subQuery = subQuery.Or(value)
-	// 			}
-	// 			tx = tx.Where(subQuery)
-	// 		}
-	// 	}
-
-	// 	return tx.Find(&model)
-	// })
-	return ""
-}
+// func (qe *QueryEngine) ToGorm() *gorm.DB {
+// 	return qe.Ref
+// }

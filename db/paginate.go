@@ -1,8 +1,18 @@
 package db
 
-func (qe *QueryEngine) Paginate(params QueryParams) *QueryEngine {
-	limit := params.Limit
-	offset := params.Offset
-	qe.Ref = qe.Ref.Limit(limit).Offset(offset)
-	return qe
+import (
+	"gorm.io/gorm"
+)
+
+func Paginate(page *int, pageSize *int) func(db *gorm.DB) *gorm.DB {
+	return func(db *gorm.DB) *gorm.DB {
+		if *page <= 0 {
+			*page = 1
+		}
+		if *pageSize <= 0 {
+			*pageSize = 10
+		}
+		offset := (*page - 1) * (*pageSize)
+		return db.Offset(offset).Limit(*pageSize)
+	}
 }

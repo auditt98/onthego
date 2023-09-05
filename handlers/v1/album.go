@@ -8,6 +8,7 @@ import (
 	"github.com/auditt98/onthego/types"
 	validatorsV1 "github.com/auditt98/onthego/validators/v1"
 	"github.com/gin-gonic/gin"
+	"gorm.io/gorm/clause"
 )
 
 type AlbumHandlerV1 struct{}
@@ -104,12 +105,22 @@ func (ctrl AlbumHandlerV1) AddUserToAlbum(c *gin.Context) {
 	return
 }
 
-func (ctrl AlbumHandlerV1) GetAlbums(c *gin.Context) {
+func (ctrl AlbumHandlerV1) Search(c *gin.Context) {
 	introspection, _ := c.Get("introspectionResult")
 	userID := introspection.(*types.IntrospectionResult).Sub
-	var user models.User
-	db.DB.Preload("Albums.Users").First(&user, userID)
-	c.JSON(http.StatusOK, types.SuccessResponse{Data: user.Albums})
+	albums := []models.Album{}
+	currentUserFilter := map[string]any{
+		"users": map[string]any{
+			"id": userID,
+		},
+	}
+	searchParams := db.SearchParams{}
+	if err := c.ShouldBindJSON(&searchParams); err != nil {
+		db.DB.Where(currentUserFilter).Find(&albums)
+	}
+	var count int64
+	db.DB.Where(searchParams.Filters).Where(currentUserFilter).Preload(clause.Associations).Scopes(db.Paginate(&searchParams.Page, &searchParams.PerPage)).Find(&albums).Count(&count)
+	c.JSON(http.StatusOK, types.SuccessResponse{Data: albums, Page: searchParams.Page, PageSize: searchParams.PerPage, Total: count})
 	return
 }
 

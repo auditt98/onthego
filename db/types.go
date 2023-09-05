@@ -47,3 +47,10 @@ type WhereParams struct {
 	Or   []WhereParams
 	Attr map[string]AttributeParams
 }
+
+type SearchParams struct {
+	Filters map[string]any `json:"$filters"`
+	Page    int            `json:"$page"`
+	PerPage int            `json:"$per_page"`
+	Sort    map[string]int `json:"$sort"`
+}
