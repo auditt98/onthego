@@ -175,8 +175,15 @@ func main() {
 		album := hv1.AlbumHandlerV1{}
 		v1.POST("/albums/search", middlewares.TokenIntrospectionMiddleware(), album.Search)
 		v1.POST("/albums", middlewares.TokenIntrospectionMiddleware(), album.CreateAlbum)
-		v1.POST("/albums/:album_id/users", middlewares.TokenIntrospectionMiddleware(), album.AddUserToAlbum)
-		v1.DELETE("/albums/:album_id/users/:user_id", middlewares.TokenIntrospectionMiddleware(), album.RemoveUserFromAlbum)
+
+		v1.POST("/albums/:album_id/users", middlewares.TokenIntrospectionMiddleware(), album.AddUser)
+		v1.DELETE("/albums/:album_id/users/:user_id", middlewares.TokenIntrospectionMiddleware(), album.RemoveUser)
+
+		v1.POST("/albums/:album_id/photos/search", middlewares.TokenIntrospectionMiddleware(), album.SearchPhotos)
+		v1.POST("/albums/:album_id/photos", middlewares.TokenIntrospectionMiddleware(), album.AddPhotos)
+
+		// photo := hv1.PhotoHandlerV1{}
+		// v1.POST("/photos", middlewares.TokenIntrospectionMiddleware(), photo.CreatePhoto)
 	}
 	v2 := entry.Router.Group("/api/v2")
 	{

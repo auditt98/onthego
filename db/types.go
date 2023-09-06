@@ -49,8 +49,9 @@ type WhereParams struct {
 }
 
 type SearchParams struct {
-	Filters map[string]any `json:"$filters"`
-	Page    int            `json:"$page"`
-	PerPage int            `json:"$per_page"`
-	Sort    map[string]int `json:"$sort"`
+	Filters  map[string]any `json:"$filters"`
+	Page     int            `json:"$page"`
+	PerPage  int            `json:"$per_page"`
+	Sort     []string       `json:"$sort"`
+	Populate []string       `json:"$populate"`
 }

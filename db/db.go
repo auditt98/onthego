@@ -12,6 +12,7 @@ import (
 	"gorm.io/driver/postgres"
 	"gorm.io/driver/sqlserver"
 	"gorm.io/gorm"
+	"gorm.io/gorm/clause"
 )
 
 var DB *gorm.DB
@@ -34,7 +35,7 @@ func Init() {
 	DB = db_instance
 	if err == nil {
 		fmt.Println("Running migrations...")
-		db_instance.AutoMigrate(&models.User{}, &models.Album{}, &models.Photo{}, &models.Comment{}, &models.ImageSize{}, &models.Like{})
+		db_instance.AutoMigrate(&models.User{}, &models.Album{}, &models.Photo{}, &models.Comment{}, &models.Like{})
 
 	}
 }
@@ -65,17 +66,34 @@ func ResolveDB() (*gorm.DB, error) {
 	return dbInstance, err
 }
 
-// Pipeline for query: Population -> Filter -> Sort -> Paging -> Projection
-// func Query(tableName string, params QueryParams, result interface{}) *gorm.DB {
-// 	queryEngine := new(QueryEngine)
-// 	queryEngine.TableName = tableName
-// 	queryEngine.Ref = DB.Table(tableName)
-// 	queryEngine.Ref = queryEngine.Populate(params).Filter(params).Sort(params).Paginate(params).Projection(params).ToGorm().Find(result)
-// 	b, _ := json.Marshal(result)
-// 	fmt.Println("Query result: ", string(b))
-// 	return queryEngine.Ref
-// }
+func Query(searchParams *SearchParams, additionalFilter map[string]any, model interface{}, count *int64) *gorm.DB {
+	fmt.Println("Search Params", searchParams)
+	dbLoader := DB.Where(searchParams.Filters)
+	if additionalFilter != nil {
+		dbLoader = dbLoader.Where(additionalFilter)
+	}
+	for _, populate := range searchParams.Populate {
+		if populate == "*" {
+			dbLoader = dbLoader.Preload(clause.Associations)
+			continue
+		}
+		dbLoader = dbLoader.Preload(populate)
+	}
+	for _, sort := range searchParams.Sort {
+		parsedSort := sort
+		parsedSort = strings.Replace(parsedSort, "-", " desc", 1)
+		parsedSort = strings.Replace(parsedSort, "+", "", 1)
+		dbLoader = dbLoader.Order(parsedSort)
+	}
+	page := searchParams.Page
+	perPage := searchParams.PerPage
+	fmt.Println("page", page)
+	fmt.Println("perPage", perPage)
+	dbLoader.Scopes(Paginate(&page, &perPage)).Find(model).Count(count)
 
-// func (qe *QueryEngine) ToGorm() *gorm.DB {
-// 	return qe.Ref
-// }
+	fmt.Println("page2", page)
+	fmt.Println("perPage2", perPage)
+	searchParams.Page = page
+	searchParams.PerPage = perPage
+	return dbLoader
+}

@@ -6,9 +6,9 @@ import (
 	"github.com/auditt98/onthego/db"
 	"github.com/auditt98/onthego/models"
 	"github.com/auditt98/onthego/types"
+	"github.com/auditt98/onthego/utils"
 	validatorsV1 "github.com/auditt98/onthego/validators/v1"
 	"github.com/gin-gonic/gin"
-	"gorm.io/gorm/clause"
 )
 
 type AlbumHandlerV1 struct{}
@@ -45,7 +45,7 @@ func (ctrl AlbumHandlerV1) CreateAlbum(c *gin.Context) {
 	return
 }
 
-func (ctrl AlbumHandlerV1) AddUserToAlbum(c *gin.Context) {
+func (ctrl AlbumHandlerV1) AddUser(c *gin.Context) {
 	introspection, _ := c.Get("introspectionResult")
 	addUserToAlbumValidator := validatorsV1.AddUserToAlbumValidator{}
 	if err := c.ShouldBindJSON(&addUserToAlbumValidator); err != nil {
@@ -114,17 +114,17 @@ func (ctrl AlbumHandlerV1) Search(c *gin.Context) {
 			"id": userID,
 		},
 	}
-	searchParams := db.SearchParams{}
-	if err := c.ShouldBindJSON(&searchParams); err != nil {
+	var count int64
+	searchParams2 := db.SearchParams{}
+	if err := c.ShouldBindJSON(&searchParams2); err != nil {
 		db.DB.Where(currentUserFilter).Find(&albums)
 	}
-	var count int64
-	db.DB.Where(searchParams.Filters).Where(currentUserFilter).Preload(clause.Associations).Scopes(db.Paginate(&searchParams.Page, &searchParams.PerPage)).Find(&albums).Count(&count)
-	c.JSON(http.StatusOK, types.SuccessResponse{Data: albums, Page: searchParams.Page, PageSize: searchParams.PerPage, Total: count})
+	db.Query(&searchParams2, currentUserFilter, &albums, &count)
+	c.JSON(http.StatusOK, types.SuccessSearchResponse{Data: albums, Page: searchParams2.Page, PageSize: searchParams2.PerPage, Total: count})
 	return
 }
 
-func (ctrl AlbumHandlerV1) RemoveUserFromAlbum(c *gin.Context) {
+func (ctrl AlbumHandlerV1) RemoveUser(c *gin.Context) {
 	introspection, _ := c.Get("introspectionResult")
 
 	albumID := c.Param("album_id")
@@ -197,4 +197,43 @@ func (ctrl AlbumHandlerV1) RemoveUserFromAlbum(c *gin.Context) {
 		return
 	}
 	c.JSON(http.StatusOK, types.SuccessResponse{Data: resultAlbum})
+}
+
+func (ctrl AlbumHandlerV1) AddPhotos(c *gin.Context) {
+	introspection, _ := c.Get("introspectionResult")
+	userID := introspection.(*types.IntrospectionResult).Sub
+	albumID := c.Param("album_id")
+	albums := []models.Album{}
+	var searchParams = db.SearchParams{
+		Filters: map[string]any{
+			"id": albumID,
+			"users": map[string]any{
+				"id": userID,
+			},
+		},
+		Page:    1,
+		PerPage: 1,
+	}
+	var count int64
+	db.Query(&searchParams, nil, &albums, &count)
+	if count == 0 || len(albums) == 0 {
+		c.JSON(http.StatusNotFound, types.Error{Code: http.StatusNotFound, Message: "Album not found"})
+	}
+
+	form, _ := c.MultipartForm()
+	files := form.File["files[]"]
+	if len(files) == 0 {
+		c.JSON(http.StatusBadRequest, types.Error{Code: http.StatusBadRequest, Message: "No files found"})
+		return
+	}
+	utils.FileUpload(files, albumID)
+	for _, file := range files {
+		c.JSON(http.StatusOK, types.SuccessResponse{Data: file})
+	}
+
+	return
+}
+
+func (ctrl AlbumHandlerV1) SearchPhotos(c *gin.Context) {
+	return
 }

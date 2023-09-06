@@ -1,10 +1,14 @@
 package types
 
-type SuccessResponse struct {
+type SuccessSearchResponse struct {
 	Data     interface{} `json:"data"`
 	Page     int         `json:"page"`
 	PageSize int         `json:"page_size"`
 	Total    int64       `json:"total"`
+}
+
+type SuccessResponse struct {
+	Data interface{} `json:"data"`
 }
 
 type Error struct {

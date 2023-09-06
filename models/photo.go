@@ -12,7 +12,7 @@ type Photo struct {
 	User      *User
 	AlbumID   uint
 	Album     *Album
-	Sizes     []*ImageSize
-	Likes     []*Like `gorm:"polymorphic:Liker;"`
-	Comments  []*Comment
+	// Sizes     []*ImageSize
+	Likes    []*Like `gorm:"polymorphic:Liker;"`
+	Comments []*Comment
 }
