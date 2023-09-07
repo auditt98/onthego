@@ -21,7 +21,7 @@ gin:
     docs:
       enabled: false
     prom:
-      enabled: true                   # Optional, default: false
+      enabled: false                   # Optional, default: false
     pprof:
       enabled: true
     middleware:
@@ -30,13 +30,13 @@ gin:
         enabled: true
         level: bestSpeed
       logging:
-        enabled: true                 # Optional, default: false
+        enabled: false                 # Optional, default: false
       prom:
-        enabled: true                 # Optional, default: false
+        enabled: false                 # Optional, default: false
       meta:
-        enabled: true                 # Optional, default: false
+        enabled: false                 # Optional, default: false
       trace:
-        enabled: true
+        enabled: false
       cors:
         enabled: true
         allowOrigins:

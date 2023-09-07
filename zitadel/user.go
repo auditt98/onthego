@@ -255,7 +255,6 @@ func generateBasicAuthHeader(clientID, clientSecret string) string {
 
 	credentials := encodedClientID + ":" + encodedClientSecret
 	encodedCredentials := base64.StdEncoding.EncodeToString([]byte(credentials))
-	fmt.Println("Encoded credentials: ", "Basic "+encodedCredentials)
 	return "Basic " + encodedCredentials
 }
 

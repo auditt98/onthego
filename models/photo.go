@@ -8,7 +8,7 @@ type Photo struct {
 	UpdatedAt time.Time
 	BaseName  string
 	BaseUrl   string
-	UserID    uint
+	UserID    string
 	User      *User
 	AlbumID   uint
 	Album     *Album

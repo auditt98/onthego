@@ -67,7 +67,6 @@ func ResolveDB() (*gorm.DB, error) {
 }
 
 func Query(searchParams *SearchParams, additionalFilter map[string]any, model interface{}, count *int64) *gorm.DB {
-	fmt.Println("Search Params", searchParams)
 	dbLoader := DB.Where(searchParams.Filters)
 	if additionalFilter != nil {
 		dbLoader = dbLoader.Where(additionalFilter)
@@ -87,12 +86,7 @@ func Query(searchParams *SearchParams, additionalFilter map[string]any, model in
 	}
 	page := searchParams.Page
 	perPage := searchParams.PerPage
-	fmt.Println("page", page)
-	fmt.Println("perPage", perPage)
 	dbLoader.Scopes(Paginate(&page, &perPage)).Find(model).Count(count)
-
-	fmt.Println("page2", page)
-	fmt.Println("perPage2", perPage)
 	searchParams.Page = page
 	searchParams.PerPage = perPage
 	return dbLoader

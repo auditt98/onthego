@@ -6,7 +6,7 @@ type Like struct {
 	ID        uint `gorm:"primarykey"`
 	CreatedAt time.Time
 	UpdatedAt time.Time
-	LikerID   uint
+	LikerID   string
 	LikerType string
 	AlbumID   uint
 	Album     *Album

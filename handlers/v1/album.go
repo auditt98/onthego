@@ -2,6 +2,10 @@ package handlers
 
 import (
 	"net/http"
+	"net/url"
+	"os"
+	"path"
+	"time"
 
 	"github.com/auditt98/onthego/db"
 	"github.com/auditt98/onthego/models"
@@ -115,12 +119,12 @@ func (ctrl AlbumHandlerV1) Search(c *gin.Context) {
 		},
 	}
 	var count int64
-	searchParams2 := db.SearchParams{}
-	if err := c.ShouldBindJSON(&searchParams2); err != nil {
+	searchParams := db.SearchParams{}
+	if err := c.ShouldBindJSON(&searchParams); err != nil {
 		db.DB.Where(currentUserFilter).Find(&albums)
 	}
-	db.Query(&searchParams2, currentUserFilter, &albums, &count)
-	c.JSON(http.StatusOK, types.SuccessSearchResponse{Data: albums, Page: searchParams2.Page, PageSize: searchParams2.PerPage, Total: count})
+	db.Query(&searchParams, currentUserFilter, &albums, &count)
+	c.JSON(http.StatusOK, types.SuccessSearchResponse{Data: albums, Page: searchParams.Page, PageSize: searchParams.PerPage, Total: count})
 	return
 }
 
@@ -215,22 +219,77 @@ func (ctrl AlbumHandlerV1) AddPhotos(c *gin.Context) {
 		PerPage: 1,
 	}
 	var count int64
+
 	db.Query(&searchParams, nil, &albums, &count)
 	if count == 0 || len(albums) == 0 {
 		c.JSON(http.StatusNotFound, types.Error{Code: http.StatusNotFound, Message: "Album not found"})
 	}
 
-	form, _ := c.MultipartForm()
+	form, err := c.MultipartForm()
+	if (err != nil) || (form == nil) {
+		c.JSON(http.StatusBadRequest, types.Error{Code: http.StatusBadRequest, Message: err.Error()})
+		return
+	}
 	files := form.File["files[]"]
+
 	if len(files) == 0 {
 		c.JSON(http.StatusBadRequest, types.Error{Code: http.StatusBadRequest, Message: "No files found"})
 		return
 	}
-	utils.FileUpload(files, albumID)
-	for _, file := range files {
-		c.JSON(http.StatusOK, types.SuccessResponse{Data: file})
+	paths, err := utils.FileUpload(files, albumID)
+	if err != nil {
+		c.JSON(http.StatusInternalServerError, types.Error{Code: http.StatusInternalServerError, Message: err.Error()})
+		return
 	}
 
+	photos := []*models.Photo{}
+
+	for _, file := range paths {
+		//create Photo, baseName would be file.split('/')[-1] then url decode
+		baseName := path.Base(file)
+		baseName, _ = url.QueryUnescape(baseName)
+
+		photo := models.Photo{
+			BaseName: baseName,
+			BaseUrl:  file,
+			AlbumID:  albums[0].ID,
+			UserID:   userID,
+		}
+		photos = append(photos, &photo)
+	}
+	result := db.DB.Create(&photos)
+	if result.Error != nil {
+		c.JSON(http.StatusInternalServerError, types.Error{Code: http.StatusInternalServerError, Message: result.Error.Error()})
+		c.Abort()
+		return
+	}
+	var scheme string
+	// c.Request.Header.Get("X-Forwarded-Proto")
+	//check if c.Request.Header.Get("X-Forwarded-Proto") exists, if it does, use that, else check if c.Request.TLS is true, if it is, use https, else use http
+	if c.Request.Header.Get("X-Forwarded-Proto") != "" {
+		scheme = c.Request.Header.Get("X-Forwarded-Proto")
+	} else if c.Request.TLS != nil {
+		scheme = "https"
+	} else {
+		scheme = "http"
+	}
+
+	if os.Getenv("UPLOAD_DRIVER") == "local" {
+		photoWithPresignedUrl := []map[string]interface{}{}
+		for _, photo := range photos {
+			presignedUrl := utils.GeneratePresignedUrl(os.Getenv("FILE_UPLOAD_PATH")+photo.BaseUrl, os.Getenv("SIGNED_URL_SECRET"), 1*time.Hour) // Adjust the parameters as needed
+
+			photoWithPresignedUrl = append(photoWithPresignedUrl, map[string]interface{}{
+				"BaseName":     photo.BaseName,
+				"BaseUrl":      photo.BaseUrl,
+				"AlbumID":      photo.AlbumID,
+				"PresignedUrl": scheme + "://" + c.Request.Host + "/api/v1/files/" + presignedUrl,
+			})
+		}
+		c.JSON(http.StatusOK, types.SuccessResponse{Data: photoWithPresignedUrl})
+	} else {
+		c.JSON(http.StatusOK, types.SuccessResponse{Data: photos})
+	}
 	return
 }
 

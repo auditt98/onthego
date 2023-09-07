@@ -12,6 +12,6 @@ type Comment struct {
 	Album         *Album
 	PhotoID       uint
 	Photo         *Photo
-	CommenterID   uint
+	CommenterID   string
 	CommenterType string
 }

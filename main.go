@@ -179,11 +179,17 @@ func main() {
 		v1.POST("/albums/:album_id/users", middlewares.TokenIntrospectionMiddleware(), album.AddUser)
 		v1.DELETE("/albums/:album_id/users/:user_id", middlewares.TokenIntrospectionMiddleware(), album.RemoveUser)
 
-		v1.POST("/albums/:album_id/photos/search", middlewares.TokenIntrospectionMiddleware(), album.SearchPhotos)
+		// v1.POST("/albums/:album_id/photos/search", middlewares.TokenIntrospectionMiddleware(), album.SearchPhotos)
 		v1.POST("/albums/:album_id/photos", middlewares.TokenIntrospectionMiddleware(), album.AddPhotos)
 
-		// photo := hv1.PhotoHandlerV1{}
-		// v1.POST("/photos", middlewares.TokenIntrospectionMiddleware(), photo.CreatePhoto)
+		photo := hv1.PhotoHandlerV1{}
+		v1.POST("/photos/search", middlewares.TokenIntrospectionMiddleware(), photo.Search)
+
+		file := hv1.FileHandlerV1{}
+		if os.Getenv("UPLOAD_DRIVER") == "local" {
+			v1.GET("/files/*file_path", middlewares.PresignedUrlValidator(), file.GetFile)
+		}
+
 	}
 	v2 := entry.Router.Group("/api/v2")
 	{
