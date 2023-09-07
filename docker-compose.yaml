@@ -8,6 +8,7 @@ services:
     image: "ghcr.io/zitadel/zitadel:latest"
     command: 'start-from-init --config  /zitadel-config.yaml --steps /zitadel-init-steps.yaml --masterkey "MasterkeyNeedsToHave32Characters" --tlsMode disabled'
     environment:
+      - ZITADEL_SYSTEMDEFAULTS_PASSWORDHASHER_HASHER_COST=10
       - "ZITADEL_DATABASE_COCKROACH_HOST=crdb"
       - "ZITADEL_EXTERNALSECURE=false"
       - "ZITADEL_LOG_LEVEL=info"

@@ -140,6 +140,14 @@ func InitZitadel() {
 		return
 	}
 
+	createAPIKeyResponse, err := zitadel.CreateAPIKey(k, defaultProjectId, createAPIResponse.AppId)
+	if err != nil {
+		fmt.Println("Error:", err)
+		return
+	}
+	fmt.Println("CREATE API KEY RESPONSE: ", createAPIKeyResponse.ID)
+	fmt.Println("CREATE API KEY RESPONSE: ", createAPIKeyResponse.KeyDetails)
+
 	actionId := zitadel.AddDefaultUserGrantAction(k, "", defaultProjectId)
 	if actionId == "" {
 		return
