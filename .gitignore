@@ -16,3 +16,5 @@ cert/
 # BUILD #
 ./gin-boilerplate
 machinekey/*
+
+uploads/*
