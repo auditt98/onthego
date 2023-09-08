@@ -3,6 +3,7 @@ package main
 import (
 	"context"
 	_ "embed"
+	"encoding/base64"
 	"encoding/json"
 	"fmt"
 	"io/ioutil"
@@ -64,7 +65,7 @@ func LoadEnv() error {
 }
 
 func InitZitadel() {
-	k, _ := zitadel.GenerateJWTFromKeyFile()
+	k, _ := zitadel.GenerateJWTServiceUser()
 	userId, err := zitadel.CreateDefaultHumanUser(k)
 	if err != nil {
 		return
@@ -145,14 +146,21 @@ func InitZitadel() {
 		fmt.Println("Error:", err)
 		return
 	}
-	fmt.Println("CREATE API KEY RESPONSE: ", createAPIKeyResponse.ID)
-	fmt.Println("CREATE API KEY RESPONSE: ", createAPIKeyResponse.KeyDetails)
-
+	decodedBytes, err := base64.StdEncoding.DecodeString(createAPIKeyResponse.KeyDetails)
+	if err != nil {
+		fmt.Println("Error decoding base64:", err)
+		return
+	}
+	decodedString := string(decodedBytes)
+	err = ioutil.WriteFile("./machinekey/default_api_introspection_secret.json", []byte(decodedString), 0644)
 	actionId := zitadel.AddDefaultUserGrantAction(k, "", defaultProjectId)
 	if actionId == "" {
 		return
 	}
 	fmt.Println("Default ActionId: ", actionId)
+	jwt, _ := zitadel.GenerateIntrospectionJWT()
+	fmt.Println("Default introspection JWT: ", jwt)
+
 	setTriggerActionResult := zitadel.SetTriggerAction(k, "", "1", "3", []string{actionId})
 	setTriggerActionResult = zitadel.SetTriggerAction(k, "", "3", "3", []string{actionId})
 	if !setTriggerActionResult {

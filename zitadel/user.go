@@ -16,10 +16,11 @@ import (
 )
 
 type JWT struct {
-	Type   string `json:"type"`
-	KeyId  string `json:"keyId"`
-	Key    string `json:"key"`
-	UserId string `json:"userId"`
+	Type     string `json:"type"`
+	KeyId    string `json:"keyId"`
+	Key      string `json:"key"`
+	UserId   string `json:"userId"`
+	ClientId string `json:"clientId"`
 }
 
 type CreateZitadelUserRequest struct {
@@ -42,6 +43,87 @@ type CreateZitadelUserEmail struct {
 type CreateZitadelUserPassword struct {
 	Password       string `json:"password"`
 	ChangeRequired bool   `json:"changeRequired"`
+}
+
+func GenerateJWTFromKey(filePath string, useId string) (string, error) {
+	fileContent, err := ioutil.ReadFile(filePath)
+	if err != nil {
+		log.Fatal("Error reading JSON file:", err)
+		return "", err
+	}
+
+	var keyData JWT
+	if err := json.Unmarshal(fileContent, &keyData); err != nil {
+		log.Fatal("Error parsing JSON:", err)
+		return "", err
+	}
+	var (
+		t *jwt.Token
+		s string
+	)
+	parsedKey, _ := jwt.ParseRSAPrivateKeyFromPEM([]byte(keyData.Key))
+	claims := jwt.MapClaims{
+		"aud": "http://localhost:8080",
+		"iat": time.Now().UTC().Unix(),
+		"exp": time.Date(9999, time.January, 1, 0, 0, 0, 0, time.UTC).Unix(),
+	}
+	if useId == "user" {
+		claims["iss"] = keyData.UserId
+		claims["sub"] = keyData.UserId
+	} else if useId == "client" {
+		claims["iss"] = keyData.ClientId
+		claims["sub"] = keyData.ClientId
+	}
+	t = jwt.NewWithClaims(jwt.SigningMethodRS256, claims)
+	t.Header["kid"] = keyData.KeyId
+	s, err = t.SignedString(parsedKey)
+	if err != nil {
+		log.Fatal("Error signing token:", err)
+		return "", err
+	}
+	return s, nil
+}
+
+func GenerateIntrospectionJWT() (string, error) {
+	jwt, err := GenerateJWTFromKey("./machinekey/default_api_introspection_secret.json", "client")
+	if err != nil {
+		log.Fatal("Error signing token:", err)
+		return "", err
+	}
+	return jwt, nil
+}
+
+func GenerateJWTServiceUser() (string, error) {
+	jwt, err := GenerateJWTFromKey("./machinekey/core_service_user_key.json", "user")
+	if err != nil {
+		log.Fatal("Error signing token:", err)
+		return "", err
+	}
+	data := url.Values{}
+	data.Set("grant_type", "urn:ietf:params:oauth:grant-type:jwt-bearer")
+	data.Set("scope", "openid profile email urn:zitadel:iam:org:project:id:zitadel:aud")
+	data.Set("assertion", jwt)
+	type TokenResponse struct {
+		AccessToken string `json:"access_token"`
+		TokenType   string `json:"token_type"`
+		ExpiresIn   int    `json:"expires_in"`
+	}
+	var token TokenResponse
+	_, err = resty.New().R().
+		SetResult(&token).
+		SetHeader("Content-Type", "application/x-www-form-urlencoded").
+		SetFormData(map[string]string{
+			"grant_type": "urn:ietf:params:oauth:grant-type:jwt-bearer",
+			"scope":      "openid profile email urn:zitadel:iam:org:project:id:zitadel:aud",
+			"assertion":  jwt,
+		}).
+		Post("http://localhost:8080/oauth/v2/token")
+	if err != nil {
+		log.Fatal("Error making POST request:", err)
+		return "", err
+	}
+	fmt.Println("JWT Token: ", token.AccessToken)
+	return token.AccessToken, nil
 }
 
 func GenerateJWTFromKeyFile() (string, error) {
@@ -259,19 +341,16 @@ func generateBasicAuthHeader(clientID, clientSecret string) string {
 }
 
 func IntrospectToken(token string) (*types.IntrospectionResult, error) {
-	apiSecret := ReadDefaultAPISecret()
-	if apiSecret == nil {
-		fmt.Println("Error reading API secret")
-		return nil, fmt.Errorf("Error reading API secret")
-	}
+	jwt, _ := GenerateIntrospectionJWT()
 
 	var introspectResponse types.IntrospectionResult
 	resp, err := resty.New().R().
 		SetHeader("Content-Type", "application/x-www-form-urlencoded").
-		SetHeader("Authorization", generateBasicAuthHeader(apiSecret.ClientId, apiSecret.ClientSecret)).
 		SetHeader("Accept", "application/json").
 		SetFormData(map[string]string{
-			"token": token,
+			"token":                 token,
+			"client_assertion_type": "urn:ietf:params:oauth:client-assertion-type:jwt-bearer",
+			"client_assertion":      jwt,
 		}).
 		SetResult(&introspectResponse).
 		Post(os.Getenv("ZITADEL_DOMAIN") + "/oauth/v2/introspect")
