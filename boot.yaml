@@ -17,11 +17,11 @@ gin:
     commonService:
       enabled: true                   # Optional, default: false
     sw:
-      enabled: false                   # Optional, default: false
+      enabled: true                   # Optional, default: false
     docs:
-      enabled: false
+      enabled: true
     prom:
-      enabled: false                   # Optional, default: false
+      enabled: true                   # Optional, default: false
     pprof:
       enabled: true
     middleware:
@@ -30,13 +30,13 @@ gin:
         enabled: true
         level: bestSpeed
       logging:
-        enabled: false                 # Optional, default: false
+        enabled: true                 # Optional, default: false
       prom:
-        enabled: false                 # Optional, default: false
+        enabled: true                 # Optional, default: false
       meta:
-        enabled: false                 # Optional, default: false
+        enabled: true                 # Optional, default: false
       trace:
-        enabled: false
+        enabled: true
       cors:
         enabled: true
         allowOrigins:

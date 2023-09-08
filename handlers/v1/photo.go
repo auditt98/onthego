@@ -53,3 +53,38 @@ func (ctrl PhotoHandlerV1) Search(c *gin.Context) {
 	}
 	return
 }
+
+func (ctrl PhotoHandlerV1) Delete(c *gin.Context) {
+	//delete photo
+	introspection, _ := c.Get("introspectionResult")
+	userID := introspection.(*types.IntrospectionResult).Sub
+	photo := models.Photo{}
+	user := models.User{}
+	filter := map[string]any{
+		"id": c.Param("photo_id"),
+	}
+	searchParams := db.SearchParams{
+		Filters: filter,
+	}
+	db.QueryOne(&searchParams, nil, &photo)
+	db.QueryOne(&db.SearchParams{Filters: map[string]any{"id": userID}, Populate: []string{"Albums"}}, nil, &user)
+	//map user.Albums to albumIDs
+	albumIDs := []uint{}
+	for _, album := range user.Albums {
+		albumIDs = append(albumIDs, album.ID)
+	}
+	//check if photo is in any of the user's albums
+	photoInAlbum := false
+	for _, albumID := range albumIDs {
+		if albumID == photo.AlbumID {
+			photoInAlbum = true
+			break
+		}
+	}
+	if !photoInAlbum {
+		c.JSON(http.StatusForbidden, types.Error{Code: http.StatusForbidden, Message: "Photo not found"})
+	}
+
+	c.JSON(http.StatusOK, types.SuccessResponse{Data: user})
+	return
+}

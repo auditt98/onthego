@@ -200,6 +200,7 @@ func main() {
 
 		photo := hv1.PhotoHandlerV1{}
 		v1.POST("/photos/search", middlewares.TokenIntrospectionMiddleware(), photo.Search)
+		v1.DELETE("/photos/:photo_id", middlewares.TokenIntrospectionMiddleware(), photo.Delete)
 
 		file := hv1.FileHandlerV1{}
 		if os.Getenv("UPLOAD_DRIVER") == "local" {
