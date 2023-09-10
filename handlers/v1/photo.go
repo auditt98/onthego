@@ -9,6 +9,7 @@ import (
 	"github.com/auditt98/onthego/models"
 	"github.com/auditt98/onthego/types"
 	"github.com/auditt98/onthego/utils"
+	validatorsV1 "github.com/auditt98/onthego/validators/v1"
 	"github.com/gin-gonic/gin"
 )
 
@@ -67,24 +68,81 @@ func (ctrl PhotoHandlerV1) Delete(c *gin.Context) {
 		Filters: filter,
 	}
 	db.QueryOne(&searchParams, nil, &photo)
+	if photo.ID == 0 {
+		c.JSON(http.StatusForbidden, types.Error{Code: http.StatusForbidden, Message: "Photo not found"})
+		return
+	}
+
 	db.QueryOne(&db.SearchParams{Filters: map[string]any{"id": userID}, Populate: []string{"Albums"}}, nil, &user)
 	//map user.Albums to albumIDs
-	albumIDs := []uint{}
-	for _, album := range user.Albums {
-		albumIDs = append(albumIDs, album.ID)
-	}
-	//check if photo is in any of the user's albums
 	photoInAlbum := false
-	for _, albumID := range albumIDs {
-		if albumID == photo.AlbumID {
+	for _, album := range user.Albums {
+		if album.ID == photo.AlbumID {
 			photoInAlbum = true
 			break
 		}
 	}
 	if !photoInAlbum {
-		c.JSON(http.StatusForbidden, types.Error{Code: http.StatusForbidden, Message: "Photo not found"})
+		c.JSON(http.StatusForbidden, types.Error{Code: http.StatusForbidden, Message: "Ypu don't have permission to delete this photo"})
+		return
+	}
+	result := db.DB.Delete(&photo)
+	//delete from storage
+	if os.Getenv("UPLOAD_DRIVER") == "local" {
+		os.Remove(os.Getenv("FILE_UPLOAD_PATH") + photo.BaseUrl)
+	}
+	if result.Error != nil {
+		c.JSON(http.StatusInternalServerError, types.Error{Code: http.StatusInternalServerError, Message: "Error deleting photo"})
+		return
+	}
+	c.JSON(http.StatusOK, types.SuccessResponse{Data: photo})
+	return
+}
+
+func (ctrl PhotoHandlerV1) Update(c *gin.Context) {
+	introspection, _ := c.Get("introspectionResult")
+	userID := introspection.(*types.IntrospectionResult).Sub
+	user := models.User{}
+	updatePhotoValidator := validatorsV1.UpdatePhotoValidator{}
+	if err := c.ShouldBindJSON(&updatePhotoValidator); err != nil {
+		c.JSON(http.StatusNotAcceptable, types.ErrorResponse{Error: types.Error{
+			Code:    http.StatusNotAcceptable,
+			Message: err.Error(),
+			Details: err,
+		}})
+		c.Abort()
+		return
 	}
 
-	c.JSON(http.StatusOK, types.SuccessResponse{Data: user})
-	return
+	photoID := c.Param("photo_id")
+	photo := models.Photo{}
+	var searchParams = db.SearchParams{
+		Filters: map[string]any{
+			"id": photoID,
+		},
+	}
+	db.QueryOne(&searchParams, nil, &photo)
+	if photo.ID == 0 {
+		c.JSON(http.StatusForbidden, types.Error{Code: http.StatusForbidden, Message: "Photo not found"})
+		return
+	}
+	db.QueryOne(&db.SearchParams{Filters: map[string]any{"id": userID}, Populate: []string{"Albums"}}, nil, &user)
+	photoInAlbum := false
+	for _, album := range user.Albums {
+		if album.ID == photo.AlbumID {
+			photoInAlbum = true
+			break
+		}
+	}
+	if !photoInAlbum {
+		c.JSON(http.StatusForbidden, types.Error{Code: http.StatusForbidden, Message: "Ypu don't have permission to delete this photo"})
+		return
+	}
+	photo.BaseName = updatePhotoValidator.Name
+	result := db.DB.Save(&photo)
+	if result.Error != nil {
+		c.JSON(http.StatusInternalServerError, types.Error{Code: http.StatusInternalServerError, Message: "Error updating photo"})
+		return
+	}
+	c.JSON(http.StatusOK, types.SuccessResponse{Data: photo})
 }

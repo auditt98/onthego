@@ -191,6 +191,7 @@ func main() {
 		album := hv1.AlbumHandlerV1{}
 		v1.POST("/albums/search", middlewares.TokenIntrospectionMiddleware(), album.Search)
 		v1.POST("/albums", middlewares.TokenIntrospectionMiddleware(), album.CreateAlbum)
+		v1.PUT("/albums/:album_id", middlewares.TokenIntrospectionMiddleware(), album.UpdateAlbum)
 
 		v1.POST("/albums/:album_id/users", middlewares.TokenIntrospectionMiddleware(), album.AddUser)
 		v1.DELETE("/albums/:album_id/users/:user_id", middlewares.TokenIntrospectionMiddleware(), album.RemoveUser)
@@ -201,6 +202,7 @@ func main() {
 		photo := hv1.PhotoHandlerV1{}
 		v1.POST("/photos/search", middlewares.TokenIntrospectionMiddleware(), photo.Search)
 		v1.DELETE("/photos/:photo_id", middlewares.TokenIntrospectionMiddleware(), photo.Delete)
+		v1.PUT("/photos/:photo_id", middlewares.TokenIntrospectionMiddleware(), photo.Update)
 
 		file := hv1.FileHandlerV1{}
 		if os.Getenv("UPLOAD_DRIVER") == "local" {

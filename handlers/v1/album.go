@@ -275,16 +275,11 @@ func (ctrl AlbumHandlerV1) AddPhotos(c *gin.Context) {
 	}
 
 	if os.Getenv("UPLOAD_DRIVER") == "local" {
-		photoWithPresignedUrl := []map[string]interface{}{}
+		photoWithPresignedUrl := []*models.Photo{}
 		for _, photo := range photos {
 			presignedUrl := utils.GeneratePresignedUrl(os.Getenv("FILE_UPLOAD_PATH")+photo.BaseUrl, os.Getenv("SIGNED_URL_SECRET"), 1*time.Hour) // Adjust the parameters as needed
-
-			photoWithPresignedUrl = append(photoWithPresignedUrl, map[string]interface{}{
-				"BaseName":     photo.BaseName,
-				"BaseUrl":      photo.BaseUrl,
-				"AlbumID":      photo.AlbumID,
-				"PresignedUrl": scheme + "://" + c.Request.Host + "/api/v1/files/" + presignedUrl,
-			})
+			photo.PresignedUrl = scheme + "://" + c.Request.Host + "/api/v1/files/" + presignedUrl
+			photoWithPresignedUrl = append(photoWithPresignedUrl, photo)
 		}
 		c.JSON(http.StatusOK, types.SuccessResponse{Data: photoWithPresignedUrl})
 	} else {
@@ -293,6 +288,36 @@ func (ctrl AlbumHandlerV1) AddPhotos(c *gin.Context) {
 	return
 }
 
-func (ctrl AlbumHandlerV1) SearchPhotos(c *gin.Context) {
+func (ctrl AlbumHandlerV1) UpdateAlbum(c *gin.Context) {
+	introspection, _ := c.Get("introspectionResult")
+	updateAlbumValidator := validatorsV1.UpdateAlbumValidator{}
+	if err := c.ShouldBindJSON(&updateAlbumValidator); err != nil {
+		c.JSON(http.StatusNotAcceptable, types.ErrorResponse{Error: types.Error{
+			Code:    http.StatusNotAcceptable,
+			Message: err.Error(),
+			Details: err,
+		}})
+		c.Abort()
+		return
+	}
+
+	albumID := c.Param("album_id")
+	album := models.Album{}
+	var searchParams = db.SearchParams{
+		Filters: map[string]any{
+			"id": albumID,
+			"users": map[string]any{
+				"id": introspection.(*types.IntrospectionResult).Sub,
+			},
+		},
+	}
+	db.QueryOne(&searchParams, nil, &album)
+	if album.ID == 0 {
+		c.JSON(http.StatusNotFound, types.Error{Code: http.StatusNotFound, Message: "Album not found"})
+		return
+	}
+	album.Name = updateAlbumValidator.Name
+	db.DB.Save(&album)
+	c.JSON(http.StatusOK, types.SuccessResponse{Data: album})
 	return
 }
