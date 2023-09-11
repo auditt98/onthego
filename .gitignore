@@ -18,3 +18,5 @@ cert/
 machinekey/*
 
 uploads/*
+tmp/*
+tmp/**/*

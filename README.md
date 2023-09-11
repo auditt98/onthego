@@ -91,35 +91,6 @@ $ ./gin-boilerplate
 $ go test -v ./tests/*
 ```
 
-## Using the Query Engine
-```
-params := db.QueryParams{
-	Where: db.WhereParams{
-		Or: []db.WhereParams{
-			{
-				Attr: map[string]db.AttributeParams{
-					"id": {
-						Eq: 2,
-					},
-				},
-			},
-		},
-	},
-	OrderBy: []string{"-id"},
-	Limit:   2,
-	Offset:  0,
-	Populate: []string{
-		"Articles",
-	},
-	Picks: []string{
-		"id",
-		"email",
-	},
-}
-var users []models.User
-db.Query("users", params, &users)
-```
-
 ## Contribution
 
 You are welcome to contribute to keep it up to date and always improving!

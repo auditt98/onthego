@@ -115,7 +115,7 @@ func ReadDefaultAPISecret() *SecretAPIResponse {
 
 func AddDefaultUserGrantAction(jwt, orgId, projectId string) string {
 	apiResponse := ReadDefaultAPISecret()
-	res, _ := CreateAction(jwt, orgId, "addGrant", "function addGrant(ctx, api) {let http = require('zitadel/http'); let logger = require('zitadel/log'); logger.log('ctx', ctx.v1); api.userGrants.push({projectID: '"+projectId+"',roles: ['USER']}); var user = http.fetch('"+os.Getenv("API_DOMAIN")+"/api/v1/idp/import', {method: 'POST',body: { 'id': ctx.v1.getUser().id, 'clientId': '"+apiResponse.ClientId+"', 'secret': '"+apiResponse.ClientSecret+"'}}).json();logger.log(user.id); }", true)
+	res, _ := CreateAction(jwt, orgId, "addGrant", "function addGrant(ctx, api) {let http = require('zitadel/http'); let logger = require('zitadel/log'); logger.log('ctx', ctx.v1); api.userGrants.push({projectID: '"+projectId+"',roles: ['USER']}); var user = http.fetch('"+os.Getenv("API_DOMAIN")+"/api/public/idp/import', {method: 'POST',body: { 'id': ctx.v1.getUser().id, 'clientId': '"+apiResponse.ClientId+"', 'secret': '"+apiResponse.ClientSecret+"'}}).json();logger.log(user.id); }", true)
 	return res
 
 	// http.fetch('"+os.Getenv("API_DOMAIN")+"/api/v1/test', {method: 'POST',body: {'id': ctx.v1.getUser().id}, 'clientId': '"+apiResponse.ClientId+"', 'secret': '"+apiResponse.ClientSecret+"' }).json();
