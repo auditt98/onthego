@@ -17,8 +17,8 @@ type PhotoHandlerV1 struct{}
 
 func (ctrl PhotoHandlerV1) Search(c *gin.Context) {
 	//get photos
-	introspection, _ := c.Get("introspectionResult")
-	userID := introspection.(*types.IntrospectionResult).Sub
+	introspection := utils.GetIntrospection(c.Get("introspectionResult"))
+	userID := introspection.Sub
 	currentUserFilter := map[string]any{
 		"user_id": userID,
 	}
@@ -44,7 +44,7 @@ func (ctrl PhotoHandlerV1) Search(c *gin.Context) {
 		for _, photo := range photos {
 			presignedUrl := utils.GeneratePresignedUrl(os.Getenv("FILE_UPLOAD_PATH")+photo.BaseUrl, os.Getenv("SIGNED_URL_SECRET"), 1*time.Hour) // Adjust the parameters as needed
 			photoMap := utils.StructToMap(photo)
-			photoMap["PresignedUrl"] = scheme + "://" + c.Request.Host + "/api/v1/files/" + presignedUrl
+			photoMap["PresignedUrl"] = scheme + "://" + c.Request.Host + "/api/public/files/" + presignedUrl
 			photoWithPresignedUrl = append(photoWithPresignedUrl, photoMap)
 		}
 
@@ -57,8 +57,8 @@ func (ctrl PhotoHandlerV1) Search(c *gin.Context) {
 
 func (ctrl PhotoHandlerV1) Delete(c *gin.Context) {
 	//delete photo
-	introspection, _ := c.Get("introspectionResult")
-	userID := introspection.(*types.IntrospectionResult).Sub
+	introspection := utils.GetIntrospection(c.Get("introspectionResult"))
+	userID := introspection.Sub
 	photo := models.Photo{}
 	user := models.User{}
 	filter := map[string]any{
@@ -100,8 +100,8 @@ func (ctrl PhotoHandlerV1) Delete(c *gin.Context) {
 }
 
 func (ctrl PhotoHandlerV1) Update(c *gin.Context) {
-	introspection, _ := c.Get("introspectionResult")
-	userID := introspection.(*types.IntrospectionResult).Sub
+	introspection := utils.GetIntrospection(c.Get("introspectionResult"))
+	userID := introspection.Sub
 	user := models.User{}
 	updatePhotoValidator := validatorsV1.UpdatePhotoValidator{}
 	if err := c.ShouldBindJSON(&updatePhotoValidator); err != nil {

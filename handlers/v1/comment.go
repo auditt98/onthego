@@ -88,9 +88,47 @@ func (ctrl CommentHandlerV1) Comment(c *gin.Context) {
 }
 
 func (ctrl CommentHandlerV1) UpdateComment(c *gin.Context) {
+	introspection := utils.GetIntrospection(c.Get("introspectionResult"))
+	commentUpdateValidator := validatorsV1.CommentUpdateValidator{}
+	if err := c.ShouldBindJSON(&commentUpdateValidator); err != nil {
+		c.JSON(http.StatusNotAcceptable, types.Error{Code: 406, Message: "Invalid request data"})
+		return
+	}
+	comment := models.Comment{}
+	commentID := c.Param("comment_id")
+	var searchParams = db.SearchParams{
+		Filters: map[string]any{
+			"id":           commentID,
+			"commenter_id": introspection.Sub,
+		},
+	}
+	db.QueryOne(&searchParams, nil, &comment)
+	if comment.ID == 0 {
+		c.JSON(http.StatusForbidden, types.Error{Code: http.StatusForbidden, Message: "You don't have permission to perform this action"})
+		return
+	}
+	comment.Content = commentUpdateValidator.Content
+	db.DB.Save(&comment)
+	c.JSON(http.StatusOK, types.SuccessResponse{Data: comment})
 	return
 }
 
 func (ctrl CommentHandlerV1) DeleteComment(c *gin.Context) {
+	introspection := utils.GetIntrospection(c.Get("introspectionResult"))
+	comment := models.Comment{}
+	commentID := c.Param("comment_id")
+	var searchParams = db.SearchParams{
+		Filters: map[string]any{
+			"id":           commentID,
+			"commenter_id": introspection.Sub,
+		},
+	}
+	db.QueryOne(&searchParams, nil, &comment)
+	if comment.ID == 0 {
+		c.JSON(http.StatusForbidden, types.Error{Code: http.StatusForbidden, Message: "You don't have permission to perform this action"})
+		return
+	}
+	db.DB.Delete(&comment)
+	c.JSON(http.StatusOK, types.SuccessResponse{Data: comment})
 	return
 }

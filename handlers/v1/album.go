@@ -5,6 +5,7 @@ import (
 	"net/url"
 	"os"
 	"path"
+	"strings"
 	"time"
 
 	"github.com/auditt98/onthego/db"
@@ -13,12 +14,13 @@ import (
 	"github.com/auditt98/onthego/utils"
 	validatorsV1 "github.com/auditt98/onthego/validators/v1"
 	"github.com/gin-gonic/gin"
+	"golang.org/x/exp/slices"
 )
 
 type AlbumHandlerV1 struct{}
 
 func (ctrl AlbumHandlerV1) CreateAlbum(c *gin.Context) {
-	introspection, _ := c.Get("introspectionResult")
+	introspection := utils.GetIntrospection(c.Get("introspectionResult"))
 	albumValidator := validatorsV1.NewAlbumValidator{}
 	if err := c.ShouldBindJSON(&albumValidator); err != nil {
 		c.JSON(http.StatusNotAcceptable, types.ErrorResponse{Error: types.Error{
@@ -31,7 +33,7 @@ func (ctrl AlbumHandlerV1) CreateAlbum(c *gin.Context) {
 	}
 	newAlbum := models.Album{}
 	user := models.User{
-		ID: introspection.(*types.IntrospectionResult).Sub,
+		ID: introspection.Sub,
 	}
 	newAlbum.Name = albumValidator.Name
 	newAlbum.Users = append(newAlbum.Users, &user)
@@ -50,7 +52,7 @@ func (ctrl AlbumHandlerV1) CreateAlbum(c *gin.Context) {
 }
 
 func (ctrl AlbumHandlerV1) AddUser(c *gin.Context) {
-	introspection, _ := c.Get("introspectionResult")
+	introspection := utils.GetIntrospection(c.Get("introspectionResult"))
 	addUserToAlbumValidator := validatorsV1.AddUserToAlbumValidator{}
 	if err := c.ShouldBindJSON(&addUserToAlbumValidator); err != nil {
 		c.JSON(http.StatusNotAcceptable, types.ErrorResponse{Error: types.Error{
@@ -68,7 +70,7 @@ func (ctrl AlbumHandlerV1) AddUser(c *gin.Context) {
 	var isUserAlreadyInAlbum bool
 
 	for _, user := range resultAlbum.Users {
-		if user.ID == introspection.(*types.IntrospectionResult).Sub {
+		if user.ID == introspection.Sub {
 			isCurrentUserInAlbum = true
 		}
 		if user.ID == addUserToAlbumValidator.UserId {
@@ -110,8 +112,8 @@ func (ctrl AlbumHandlerV1) AddUser(c *gin.Context) {
 }
 
 func (ctrl AlbumHandlerV1) Search(c *gin.Context) {
-	introspection, _ := c.Get("introspectionResult")
-	userID := introspection.(*types.IntrospectionResult).Sub
+	introspection := utils.GetIntrospection(c.Get("introspectionResult"))
+	userID := introspection.Sub
 	albums := []models.Album{}
 	currentUserFilter := map[string]any{
 		"users": map[string]any{
@@ -124,12 +126,38 @@ func (ctrl AlbumHandlerV1) Search(c *gin.Context) {
 		db.DB.Where(currentUserFilter).Find(&albums)
 	}
 	db.Query(&searchParams, currentUserFilter, &albums, &count)
+	isPopulatePhotos := slices.ContainsFunc(searchParams.Populate, func(s string) bool {
+		return strings.Contains(s, "Photos")
+	})
+
+	var scheme string
+	// c.Request.Header.Get("X-Forwarded-Proto")
+	//check if c.Request.Header.Get("X-Forwarded-Proto") exists, if it does, use that, else check if c.Request.TLS is true, if it is, use https, else use http
+	if c.Request.Header.Get("X-Forwarded-Proto") != "" {
+		scheme = c.Request.Header.Get("X-Forwarded-Proto")
+	} else if c.Request.TLS != nil {
+		scheme = "https"
+	} else {
+		scheme = "http"
+	}
+
+	if isPopulatePhotos && os.Getenv("UPLOAD_DRIVER") == "local" {
+		for _, album := range albums {
+			photoWithPresignedUrl := []*models.Photo{}
+			for _, photo := range album.Photos {
+				presignedUrl := utils.GeneratePresignedUrl(os.Getenv("FILE_UPLOAD_PATH")+photo.BaseUrl, os.Getenv("SIGNED_URL_SECRET"), 1*time.Hour)
+				photo.PresignedUrl = scheme + "://" + c.Request.Host + "/api/public/files/" + presignedUrl
+				photoWithPresignedUrl = append(photoWithPresignedUrl, photo)
+			}
+			album.Photos = photoWithPresignedUrl
+		}
+	}
 	c.JSON(http.StatusOK, types.SuccessSearchResponse{Data: albums, Page: searchParams.Page, PageSize: searchParams.PerPage, Total: count})
 	return
 }
 
 func (ctrl AlbumHandlerV1) RemoveUser(c *gin.Context) {
-	introspection, _ := c.Get("introspectionResult")
+	introspection := utils.GetIntrospection(c.Get("introspectionResult"))
 
 	albumID := c.Param("album_id")
 	userID := c.Param("user_id")
@@ -140,7 +168,7 @@ func (ctrl AlbumHandlerV1) RemoveUser(c *gin.Context) {
 	var isUserAlreadyInAlbum bool
 
 	for _, user := range resultAlbum.Users {
-		if user.ID == introspection.(*types.IntrospectionResult).Sub {
+		if user.ID == introspection.Sub {
 			isCurrentUserInAlbum = true
 		}
 		if user.ID == userID {
@@ -186,7 +214,7 @@ func (ctrl AlbumHandlerV1) RemoveUser(c *gin.Context) {
 	//if current user is not in the album anymore,
 	var currentUserInUpdatedAlbum bool
 	for _, user := range resultAlbum.Users {
-		if user.ID == introspection.(*types.IntrospectionResult).Sub {
+		if user.ID == introspection.Sub {
 			currentUserInUpdatedAlbum = true
 			break
 		}
@@ -204,8 +232,8 @@ func (ctrl AlbumHandlerV1) RemoveUser(c *gin.Context) {
 }
 
 func (ctrl AlbumHandlerV1) AddPhotos(c *gin.Context) {
-	introspection, _ := c.Get("introspectionResult")
-	userID := introspection.(*types.IntrospectionResult).Sub
+	introspection := utils.GetIntrospection(c.Get("introspectionResult"))
+	userID := introspection.Sub
 	albumID := c.Param("album_id")
 	albums := []models.Album{}
 	var searchParams = db.SearchParams{
@@ -278,7 +306,7 @@ func (ctrl AlbumHandlerV1) AddPhotos(c *gin.Context) {
 		photoWithPresignedUrl := []*models.Photo{}
 		for _, photo := range photos {
 			presignedUrl := utils.GeneratePresignedUrl(os.Getenv("FILE_UPLOAD_PATH")+photo.BaseUrl, os.Getenv("SIGNED_URL_SECRET"), 1*time.Hour) // Adjust the parameters as needed
-			photo.PresignedUrl = scheme + "://" + c.Request.Host + "/api/v1/files/" + presignedUrl
+			photo.PresignedUrl = scheme + "://" + c.Request.Host + "/api/public/files/" + presignedUrl
 			photoWithPresignedUrl = append(photoWithPresignedUrl, photo)
 		}
 		c.JSON(http.StatusOK, types.SuccessResponse{Data: photoWithPresignedUrl})
@@ -289,7 +317,7 @@ func (ctrl AlbumHandlerV1) AddPhotos(c *gin.Context) {
 }
 
 func (ctrl AlbumHandlerV1) UpdateAlbum(c *gin.Context) {
-	introspection, _ := c.Get("introspectionResult")
+	introspection := utils.GetIntrospection(c.Get("introspectionResult"))
 	updateAlbumValidator := validatorsV1.UpdateAlbumValidator{}
 	if err := c.ShouldBindJSON(&updateAlbumValidator); err != nil {
 		c.JSON(http.StatusNotAcceptable, types.ErrorResponse{Error: types.Error{
@@ -307,7 +335,7 @@ func (ctrl AlbumHandlerV1) UpdateAlbum(c *gin.Context) {
 		Filters: map[string]any{
 			"id": albumID,
 			"users": map[string]any{
-				"id": introspection.(*types.IntrospectionResult).Sub,
+				"id": introspection.Sub,
 			},
 		},
 	}

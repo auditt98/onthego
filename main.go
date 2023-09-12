@@ -13,7 +13,6 @@ import (
 
 	"github.com/auditt98/onthego/db"
 	hv1 "github.com/auditt98/onthego/handlers/v1"
-	hv2 "github.com/auditt98/onthego/handlers/v2"
 	"github.com/auditt98/onthego/middlewares"
 	"github.com/auditt98/onthego/zitadel"
 	rkboot "github.com/rookie-ninja/rk-boot/v2"
@@ -211,11 +210,9 @@ func main() {
 		v1.PUT("/comments/:comment_id", comment.UpdateComment)
 		v1.DELETE("/comments/:comment_id", comment.DeleteComment)
 	}
-	v2 := entry.Router.Group("/api/v2")
-	{
-		article := hv2.ArticleHandlerV2{}
-		v2.GET("/test", article.Get)
-	}
+	// v2 := entry.Router.Group("/api/v2")
+	// {
+	// }
 
 	entry.Router.LoadHTMLGlob("./public/html/*")
 	// logger := rkentry.GlobalAppCtx.GetLoggerEntry("my-logger")
