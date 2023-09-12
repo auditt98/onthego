@@ -10,13 +10,11 @@ require (
 	github.com/joho/godotenv v1.3.0
 	github.com/rookie-ninja/rk-boot/v2 v2.2.19
 	github.com/rookie-ninja/rk-gin/v2 v2.2.20
-	github.com/spf13/cobra v1.7.0
 	github.com/stretchr/testify v1.8.4
 	github.com/survivorbat/gorm-deep-filtering v0.0.8
 	github.com/survivorbat/gorm-query-convert v0.0.1
-	github.com/swaggo/swag v1.16.1
+	github.com/swaggo/swag v1.16.2
 	golang.org/x/exp v0.0.0-20230905200255-921286631fa9
-	gopkg.in/yaml.v3 v3.0.1
 	gorm.io/driver/mysql v1.5.1
 	gorm.io/driver/postgres v1.5.2
 	gorm.io/driver/sqlserver v1.5.1
@@ -51,7 +49,6 @@ require (
 	github.com/google/uuid v1.3.0 // indirect
 	github.com/grpc-ecosystem/grpc-gateway/v2 v2.16.2 // indirect
 	github.com/hashicorp/hcl v1.0.0 // indirect
-	github.com/inconshreveable/mousetrap v1.1.0 // indirect
 	github.com/jackc/pgpassfile v1.0.0 // indirect
 	github.com/jackc/pgservicefile v0.0.0-20221227161230-091c0ba34f0a // indirect
 	github.com/jackc/pgx/v5 v5.3.1 // indirect
@@ -116,4 +113,5 @@ require (
 	gopkg.in/ini.v1 v1.66.6 // indirect
 	gopkg.in/natefinch/lumberjack.v2 v2.0.0 // indirect
 	gopkg.in/yaml.v2 v2.4.0 // indirect
+	gopkg.in/yaml.v3 v3.0.1 // indirect
 )
