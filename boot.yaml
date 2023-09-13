@@ -1,0 +1,49 @@
+---
+logger:
+  - name: my-logger
+    zap:
+      outputPaths: ["logs/log.log"]
+
+      
+gin:
+  - name: ginboilerplate                     # Required
+    port: 9000                        # Required
+    enabled: true                     # Required
+    static:
+      enabled: false
+      path: "/public"
+      sourceType: "local"
+      sourcePath: "."
+    commonService:
+      enabled: true                   # Optional, default: false
+    sw:
+      enabled: true                   # Optional, default: false
+      path: "/sw"
+    docs:
+      enabled: true
+    prom:
+      enabled: true                   # Optional, default: false
+    pprof:
+      enabled: true
+    middleware:
+      errorModel: google
+      gzip:
+        enabled: true
+        level: bestSpeed
+      logging:
+        enabled: true                 # Optional, default: false
+      prom:
+        enabled: true                 # Optional, default: false
+      meta:
+        enabled: true                 # Optional, default: false
+      trace:
+        enabled: true
+      cors:
+        enabled: true
+        allowOrigins:
+          - "http://localhost:*"
+      allowCredentials: true
+      allowHeaders: ["X-Requested-With, Content-Type, Origin, Authorization, Accept, Client-Security-Token, Accept-Encoding, x-access-token"]
+      allowMethods: ["POST", "GET", "OPTIONS", "PUT", "DELETE"]
+      exposeHeaders: ["Content-Length"]
+      maxAge: 86400
