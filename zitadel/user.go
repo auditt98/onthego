@@ -63,7 +63,7 @@ func GenerateJWTFromKey(filePath string, useId string) (string, error) {
 	)
 	parsedKey, _ := jwt.ParseRSAPrivateKeyFromPEM([]byte(keyData.Key))
 	claims := jwt.MapClaims{
-		"aud": "http://localhost:8080",
+		"aud": os.Getenv("ZITADEL_DOMAIN"),
 		"iat": time.Now().UTC().Unix(),
 		"exp": time.Date(9999, time.January, 1, 0, 0, 0, 0, time.UTC).Unix(),
 	}
@@ -117,7 +117,7 @@ func GenerateJWTServiceUser() (string, error) {
 			"scope":      "openid profile email urn:zitadel:iam:org:project:id:zitadel:aud",
 			"assertion":  jwt,
 		}).
-		Post("http://localhost:8080/oauth/v2/token")
+		Post(os.Getenv("ZITADEL_DOMAIN") + "/oauth/v2/token")
 	if err != nil {
 		log.Fatal("Error making POST request:", err)
 		return "", err
@@ -149,7 +149,7 @@ func GenerateJWTFromKeyFile() (string, error) {
 	t = jwt.NewWithClaims(jwt.SigningMethodRS256, jwt.MapClaims{
 		"iss": keyData.UserId,
 		"sub": keyData.UserId,
-		"aud": "http://localhost:8080",
+		"aud": os.Getenv("ZITADEL_DOMAIN"),
 		"iat": time.Now().UTC().Unix(),
 		"exp": time.Now().Add(time.Hour * 48).UTC().Unix(),
 	})
@@ -179,7 +179,7 @@ func GenerateJWTFromKeyFile() (string, error) {
 			"scope":      "openid profile email urn:zitadel:iam:org:project:id:zitadel:aud",
 			"assertion":  s,
 		}).
-		Post("http://localhost:8080/oauth/v2/token")
+		Post(os.Getenv("ZITADEL_DOMAIN") + "/oauth/v2/token")
 	if err != nil {
 		log.Fatal("Error making POST request:", err)
 		return "", err

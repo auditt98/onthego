@@ -10,7 +10,6 @@ require (
 	github.com/joho/godotenv v1.3.0
 	github.com/rookie-ninja/rk-boot/v2 v2.2.19
 	github.com/rookie-ninja/rk-gin/v2 v2.2.20
-	github.com/stretchr/testify v1.8.4
 	github.com/survivorbat/gorm-deep-filtering v0.0.8
 	github.com/survivorbat/gorm-query-convert v0.0.1
 	golang.org/x/exp v0.0.0-20230905200255-921286631fa9
@@ -29,7 +28,6 @@ require (
 	github.com/cespare/xxhash/v2 v2.2.0 // indirect
 	github.com/chenzhuoyu/base64x v0.0.0-20230717121745-296ad89f973d // indirect
 	github.com/chenzhuoyu/iasm v0.9.0 // indirect
-	github.com/davecgh/go-spew v1.1.1 // indirect
 	github.com/fsnotify/fsnotify v1.5.4 // indirect
 	github.com/gabriel-vasile/mimetype v1.4.2 // indirect
 	github.com/gin-contrib/pprof v1.4.0 // indirect
@@ -65,7 +63,6 @@ require (
 	github.com/openzipkin/zipkin-go v0.4.0 // indirect
 	github.com/pelletier/go-toml v1.9.5 // indirect
 	github.com/pelletier/go-toml/v2 v2.1.0 // indirect
-	github.com/pmezard/go-difflib v1.0.0 // indirect
 	github.com/prometheus/client_golang v1.13.0 // indirect
 	github.com/prometheus/client_model v0.2.0 // indirect
 	github.com/prometheus/common v0.37.0 // indirect

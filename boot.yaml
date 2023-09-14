@@ -41,7 +41,7 @@ gin:
       cors:
         enabled: true
         allowOrigins:
-          - "http://localhost:*"
+          - "*:*"
       allowCredentials: true
       allowHeaders: ["X-Requested-With, Content-Type, Origin, Authorization, Accept, Client-Security-Token, Accept-Encoding, x-access-token"]
       allowMethods: ["POST", "GET", "OPTIONS", "PUT", "DELETE"]

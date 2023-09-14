@@ -161,6 +161,7 @@ func main() {
 		}
 		user := hv1.UserHandlerV1{}
 		public.POST("/idp/import", user.AddUserFromIdP)
+		public.GET("/default_client_id", user.GetDefaultClientId)
 	}
 	v1 := entry.Router.Group("/api/v1").Use(middlewares.TokenIntrospectionMiddleware())
 	{
@@ -188,20 +189,6 @@ func main() {
 		v1.PUT("/comments/:comment_id", comment.UpdateComment)
 		v1.DELETE("/comments/:comment_id", comment.DeleteComment)
 	}
-	// v2 := entry.Router.Group("/api/v2")
-	// {
-	// }
-	// sw := entry.Router.Group("/sw")
-	// {
-	// 	sw.GET("/swagger-ui-bundle.js", func(c *gin.Context) {
-	// 		c.File("./public/swagger-ui-bundle.js")
-	// 		return
-	// 	})
-	// 	sw.GET("/swagger-ui-standalone-preset.js", func(c *gin.Context) {
-	// 		c.File("./public/swagger-ui-bundle.js")
-	// 		return
-	// 	})
-	// }
 	// logger := rkentry.GlobalAppCtx.GetLoggerEntry("my-logger")
 	boot.Bootstrap(context.TODO())
 	boot.WaitForShutdownSig(context.TODO())

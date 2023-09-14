@@ -45,45 +45,8 @@ func (ctrl UserHandlerV1) AddUserFromIdP(c *gin.Context) {
 	return
 }
 
-func (ctrl UserHandlerV1) Test(c *gin.Context) {
-	introspectionResult, ok := c.Get("introspectionResult")
-	if !ok {
-		c.JSON(500, types.Error{Code: 500, Message: "Introspection result not found"})
-	} else {
-		c.JSON(200, types.SuccessResponse{Data: introspectionResult})
-	}
-	return
-}
-
-func (ctrl UserHandlerV1) TestPublic(c *gin.Context) {
-	// queryObject, _ := c.Get("queryObject")
-	userImportValidator := map[string]any{}
-	if c.ShouldBindJSON(&userImportValidator) != nil {
-		c.JSON(http.StatusNotAcceptable, gin.H{"message": "Invalid request data", "form": userImportValidator})
-		c.Abort()
-		return
-	}
-	c.JSON(200, userImportValidator)
-
-	albums := []models.Album{}
-	db.DB.Where(userImportValidator).Find(&albums)
-
-	c.JSON(200, albums)
-	return
-}
-
-func (ctrl UserHandlerV1) Update(c *gin.Context) {
-	userImportValidator := validatorsV1.IdPUserImportValidator{}
-	if c.ShouldBindJSON(&userImportValidator) != nil {
-		c.JSON(http.StatusNotAcceptable, gin.H{"message": "Invalid request data", "form": userImportValidator})
-		c.Abort()
-		return
-	}
-	c.JSON(200, userImportValidator)
-	return
-}
-
-func (ctrl UserHandlerV1) Delete(c *gin.Context) {
-	//code here
+func (ctrl UserHandlerV1) GetDefaultClientId(c *gin.Context) {
+	apiResponse := zitadel.ReadDefaultAPISecret()
+	c.JSON(http.StatusOK, types.SuccessResponse{Data: apiResponse.ClientId})
 	return
 }

@@ -1,34 +1,18 @@
 ![alt tag](https://upload.wikimedia.org/wikipedia/commons/2/23/Golang.png)
 
-## Golang Gin
+## POC for Go Lab - 2023
 
 **This is auditt_98's fork of Golang Gin Boilerplate**
 
-It provides a quick way to bootstrap your project with a predefined structure with support for multiple databases, Redis, OIDC authentication
-(to be implemented), and more.
-
-### Configured with
-
-- [gorm](https://gorm.io/): Gorm
-- [jwt-go](https://github.com/golang-jwt/jwt): JSON Web Tokens (JWT) as middleware
-- [go-redis](https://github.com/go-redis/redis): Redis support for Go
-- Go Modules
-- Built-in **Custom Validators**
-- Built-in **CORS Middleware**
-- Built-in **RequestID Middleware**
-- SSL Support
-- Environment support
-- Unit test
-- And few other important utilties to kickstart any project
-- Drivers for a few databases built-in (Gorm drivers)
-- High level Query Engine on top of Gorm that provides selecting syntax similar to MongoDB (WIP)
-- Code Scaffolding (WIP)
-- Batteries included with [https://docs.rkdev.info/](RK-Boot)
-
-
-### On my TODO list
-- Implementing OIDC authentication (Using Zitadel)
-- Dockerize
+Bootstrapping projects with built-in batteries included, such as:
+  - Authentication (OIDC with Zitadel)
+	- Query Helpers
+	- CockroachDB
+	- Presigned URLS
+	- Validators
+	- Middlewares (CORS, RequestID, etc)
+	- Env support
+	- SSL support
 
 ### Installation
 
@@ -62,12 +46,38 @@ There are a few ways to load the default env
 
 #### Replace the following in the `.env` file
 ```
-DB_DRIVER=
-DB_USER=
-DB_PASS=
-DB_HOST=
-DB_PORT=
-DB_NAME=
+ENV=LOCAL
+PORT=9000
+SSL=FALSE
+API_VERSION=1.0
+DB_DRIVER=postgres
+DB_USER="root"
+DB_PASS="postgres"
+DB_HOST="localhost"
+DB_PORT="26257"
+DB_NAME="onthego"
+REDIS_SECRET=""
+REDIS_HOST=127.0.0.1:6379
+REDIS_PASSWORD=
+ZITADEL_USER_EMAIL=""
+ZITADEL_USERNAME="core_human_user"
+ZITADEL_PASSWORD="CoreHumanPassword1!"
+ZITADEL_DOMAIN=http://localhost:8080
+API_DOMAIN=http://host.docker.internal:9000
+FILE_UPLOAD_PATH=uploads
+UPLOAD_DRIVER=local
+SIGNED_URL_SECRET=CatMeowMeow123
+ZITADEL_DATABASE_COCKROACH_HOST=crdb
+ZITADEL_EXTERNALSECURE=false
+ZITADEL_LOG_LEVEL=info
+ZITADEL_DEFAULTINSTANCE_ORG_NAME=OnTheGo
+ZITADEL_DEFAULTINSTANCE_DOMAINPOLICY_SMTPSENDERADDRESSMATCHESINSTANCEDOMAIN=false
+ZITADEL_DEFAULTINSTANCE_SMTPCONFIGURATION_SMTP_HOST=
+ZITADEL_DEFAULTINSTANCE_SMTPCONFIGURATION_SMTP_USER=
+ZITADEL_DEFAULTINSTANCE_SMTPCONFIGURATION_SMTP_PASSWORD=
+ZITADEL_DEFAULTINSTANCE_SMTPCONFIGURATION_TLS=true
+ZITADEL_DEFAULTINSTANCE_SMTPCONFIGURATION_FROM=
+ZITADEL_DEFAULTINSTANCE_SMTPCONFIGURATION_FROMNAME=
 ```
 
 #### Currently, the supported drivers are:
