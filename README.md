@@ -80,19 +80,11 @@ ZITADEL_DEFAULTINSTANCE_SMTPCONFIGURATION_FROM=
 ZITADEL_DEFAULTINSTANCE_SMTPCONFIGURATION_FROMNAME=
 ```
 
-#### Currently, the supported drivers are:
-- mysql
-- postgres (support Postgres and CockroachDB) (Recommended)
-- mssql
 
 ## Building Your Application
 
 ```
 $ go build -v
-```
-
-```
-$ ./gin-boilerplate
 ```
 
 ## Testing Your Application

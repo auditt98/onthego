@@ -11,26 +11,24 @@ services:
       test: ["CMD", "curl", "-f", "http://localhost:8080/health?ready=1"]
       interval: "10s"
       timeout: "30s"
-      retries: 5
+      retries: 15
       start_period: "20s"
     ports:
       - "9090:8080"
       - "26257:26257"
+    volumes:
+      - "./zitadel-init-steps.yaml:/zitadel-init-steps.yaml"
+      - ./machinekey:/machinekey
 
   zitadel:
     restart: "always"
     networks:
       - "onthego"
     image: "ghcr.io/zitadel/zitadel:latest"
-    command: 'start-from-init --config  /zitadel-config.yaml --steps /zitadel-init-steps.yaml --masterkey "MasterkeyNeedsToHave32Characters" --tlsMode disabled'
-    healthcheck:
-      test: ["CMD", "curl", "-f", "http://localhost:8080/debug/healthz"]
-      interval: "10s"
-      timeout: "30s"
-      retries: 5
-      start_period: "20s"
+    tty: true
+    command: 'start-from-init --steps /zitadel-init-steps.yaml --masterkey "MasterkeyNeedsToHave32Characters" --tlsMode disabled'
     environment:
-      - "ZITADEL_DATABASE_COCKROACH_HOST=crdb"
+      - ZITADEL_DATABASE_COCKROACH_HOST=crdb
       - "ZITADEL_EXTERNALSECURE=false"
       - "ZITADEL_LOG_LEVEL=info"
       - "ZITADEL_DEFAULTINSTANCE_ORG_NAME=OnTheGo"
@@ -41,6 +39,14 @@ services:
       - ZITADEL_DEFAULTINSTANCE_SMTPCONFIGURATION_TLS=true
       - ZITADEL_DEFAULTINSTANCE_SMTPCONFIGURATION_FROM=support.trinhvietanh.net
       - ZITADEL_DEFAULTINSTANCE_SMTPCONFIGURATION_FROMNAME=support.trinhvietanh.net
+      - ZITADEL_LOGSTORE_ACCESS_STDOUT_ENABLED=true
+      - ZITADEL_LOGSTORE_EXECUTION_DATABASE_ENABLED=true
+      - ZITADEL_FIRSTINSTANCE_MACHINEKEYPATH=/machinekey/core_service_user_key.json
+      - ZITADEL_FIRSTINSTANCE_INSTANCENAME=OnTheGo
+      - ZITADEL_FIRSTINSTANCE_ORG_NAME=OnTheGo
+      - ZITADEL_FIRSTINSTANCE_ORG_MACHINE_USERNAME=core_service_user
+      - ZITADEL_FIRSTINSTANCE_ORG_MACHINE_NAME=core_service_user
+      - ZITADEL_FIRSTINSTANCE_ORG_MACHINE_MACHINEKEY_TYPE=1
     depends_on:
       crdb:
         condition: "service_healthy"
@@ -61,7 +67,7 @@ services:
       - DB_DRIVER=postgres
       - DB_USER=root
       - DB_PASS=postgres
-      - DB_HOST=host.docker.internal
+      - DB_HOST=172.17.0.1
       - DB_PORT=26257
       - DB_NAME=onthego
       - REDIS_SECRET=hjfhjhasdfkyuy2
@@ -70,12 +76,12 @@ services:
       - ZITADEL_USER_EMAIL=vietanh8i1998@gmail.com
       - ZITADEL_USERNAME=core_human_user
       - ZITADEL_PASSWORD=CoreHumanPassword1!
-      - ZITADEL_DOMAIN=http://host.docker.internal:8080
-      - API_DOMAIN=http://host.docker.internal:9000
+      - ZITADEL_DOMAIN=http://172.17.0.1:8080
+      - API_DOMAIN=http://172.17.0.1:9000
       - FILE_UPLOAD_PATH=uploads
       - UPLOAD_DRIVER=local
       - SIGNED_URL_SECRET=CatMeowMeow123
-      - ZITADEL_DATABASE_COCKROACH_HOST=crdb
+      - ZITADEL_DATABASE_COCKROACH_HOST=http://172.17.0.1:26257
       - ZITADEL_EXTERNALSECURE=false
       - ZITADEL_LOG_LEVEL=info
       - ZITADEL_DEFAULTINSTANCE_ORG_NAME=OnTheGo
@@ -89,16 +95,12 @@ services:
     networks:
       - "onthego"
     image: "auditt98/onthego:main"
-    depends_on:
-      crdb:
-        condition: service_healthy
-      zitadel:
-        condition: service_completed_successfully
     ports:
       - "9000:9000"
     volumes:
       - "./zitadel-init-steps.yaml:/zitadel-init-steps.yaml"
       - "./machinekey:/machinekey"
+    command: /bin/bash -c "until [ \"\$(curl -s -o /dev/null -w ''%{http_code}'' http://host.docker.internal:8080/debug/ready)\" == \"200\" ]; do echo 'Waiting for service to be ready...'; sleep 5; done && sleep 20 && ./main"
 
 networks:
   onthego:

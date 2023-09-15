@@ -51,6 +51,7 @@ func GenerateJWTFromKey(filePath string, useId string) (string, error) {
 		log.Fatal("Error reading JSON file:", err)
 		return "", err
 	}
+	fmt.Println("file content: ", string(fileContent))
 
 	var keyData JWT
 	if err := json.Unmarshal(fileContent, &keyData); err != nil {
@@ -63,7 +64,7 @@ func GenerateJWTFromKey(filePath string, useId string) (string, error) {
 	)
 	parsedKey, _ := jwt.ParseRSAPrivateKeyFromPEM([]byte(keyData.Key))
 	claims := jwt.MapClaims{
-		"aud": os.Getenv("ZITADEL_DOMAIN"),
+		"aud": "http://localhost:8080",
 		"iat": time.Now().UTC().Unix(),
 		"exp": time.Date(9999, time.January, 1, 0, 0, 0, 0, time.UTC).Unix(),
 	}
@@ -94,11 +95,14 @@ func GenerateIntrospectionJWT() (string, error) {
 }
 
 func GenerateJWTServiceUser() (string, error) {
+	fmt.Println("Generating JWT for service user...")
 	jwt, err := GenerateJWTFromKey("./machinekey/core_service_user_key.json", "user")
 	if err != nil {
 		log.Fatal("Error signing token:", err)
 		return "", err
 	}
+	fmt.Println("JWT", jwt)
+
 	data := url.Values{}
 	data.Set("grant_type", "urn:ietf:params:oauth:grant-type:jwt-bearer")
 	data.Set("scope", "openid profile email urn:zitadel:iam:org:project:id:zitadel:aud")
@@ -117,7 +121,7 @@ func GenerateJWTServiceUser() (string, error) {
 			"scope":      "openid profile email urn:zitadel:iam:org:project:id:zitadel:aud",
 			"assertion":  jwt,
 		}).
-		Post(os.Getenv("ZITADEL_DOMAIN") + "/oauth/v2/token")
+		Post(os.Getenv("ZITADEL_DOMAIN") + "/oauth/v2/token") // os.Getenv("ZITADEL_DOMAIN")
 	if err != nil {
 		log.Fatal("Error making POST request:", err)
 		return "", err
@@ -179,7 +183,7 @@ func GenerateJWTFromKeyFile() (string, error) {
 			"scope":      "openid profile email urn:zitadel:iam:org:project:id:zitadel:aud",
 			"assertion":  s,
 		}).
-		Post(os.Getenv("ZITADEL_DOMAIN") + "/oauth/v2/token")
+		Post(os.Getenv("ZITADEL_DOMAIN") + "/oauth/v2/token") //os.Getenv("ZITADEL_DOMAIN")
 	if err != nil {
 		log.Fatal("Error making POST request:", err)
 		return "", err
@@ -196,13 +200,15 @@ func CheckDefaultHumanUserUnique(jwt string) bool {
 
 	var uniqueResponse UniqueResponse
 
-	_, err := resty.New().R().
+	res, err := resty.New().R().
 		ForceContentType("application/json").
 		SetAuthToken(jwt).
 		SetResult(&uniqueResponse).
 		SetQueryParams(map[string]string{
 			"email": os.Getenv("ZITADEL_USER_EMAIL"),
 		}).Get(url)
+
+	fmt.Println("Response Body:", res)
 
 	if err != nil {
 		fmt.Println("Error making POST request:", err)
@@ -216,6 +222,7 @@ func CreateDefaultHumanUser(jwt string) (string, error) {
 	userEmailEnv := os.Getenv("ZITADEL_USER_EMAIL")
 	usernameEnv := os.Getenv("ZITADEL_USERNAME")
 	passwordEnv := os.Getenv("ZITADEL_PASSWORD")
+	fmt.Println("Creating default human user..." + userEmailEnv + " " + usernameEnv + " " + passwordEnv)
 
 	if userEmailEnv == "" {
 		return "", fmt.Errorf("Missing env variable ZITADEL_USER_EMAIL. Default human user will not be created")
