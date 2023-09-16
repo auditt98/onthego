@@ -3,7 +3,7 @@ package models
 import "time"
 
 type Photo struct {
-	ID           uint       `gorm:"primarykey"`
+	ID           uint       `gorm:"primarykey" json:"id"`
 	CreatedAt    time.Time  `json:"created_at"`
 	UpdatedAt    time.Time  `json:"updated_at"`
 	BaseName     string     `json:"base_name"`

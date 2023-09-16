@@ -93,6 +93,15 @@ func CreateAction(jwt, orgId, name, script string, allowedToFail bool) (string, 
 	return createActionResponse.Id, nil
 }
 
+func ReadDefaultClientID() string {
+	str, err := ioutil.ReadFile("./machinekey/default_client_id.txt")
+	if err != nil {
+		fmt.Println("Error:", err)
+		return ""
+	}
+	return string(str)
+}
+
 func ReadDefaultAPISecret() *SecretAPIResponse {
 	// read secret from file
 

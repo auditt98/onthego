@@ -4,7 +4,7 @@ import "time"
 
 // User ...
 type Comment struct {
-	ID            uint      `gorm:"primarykey";json:"id"`
+	ID            uint      `gorm:"primarykey" json:"ID"`
 	CreatedAt     time.Time `json:"created_at"`
 	UpdatedAt     time.Time `json:"updated_at"`
 	Content       string    `json:"content"`

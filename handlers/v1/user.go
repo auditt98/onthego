@@ -46,7 +46,7 @@ func (ctrl UserHandlerV1) AddUserFromIdP(c *gin.Context) {
 }
 
 func (ctrl UserHandlerV1) GetDefaultClientId(c *gin.Context) {
-	apiResponse := zitadel.ReadDefaultAPISecret()
-	c.JSON(http.StatusOK, types.SuccessResponse{Data: apiResponse.ClientId})
+	response := zitadel.ReadDefaultClientID()
+	c.JSON(http.StatusOK, types.SuccessResponse{Data: response})
 	return
 }

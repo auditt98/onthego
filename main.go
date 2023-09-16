@@ -99,10 +99,12 @@ func InitZitadel() {
 		IdTokenUserInfoAssertion: true,
 	}
 
-	_, e = zitadel.CreateOIDCApp("", defaultProjectId, k, defaultAppRequest)
+	oidcResponse, e := zitadel.CreateOIDCApp("", defaultProjectId, k, defaultAppRequest)
 	if e != nil {
 		return
 	}
+
+	err = ioutil.WriteFile("./machinekey/default_client_id.txt", []byte(oidcResponse.ClientId), 0644)
 
 	createAPIResponse, e := zitadel.CreateAPIApp(k, defaultProjectId, "OnTheWall_API")
 	if e != nil {

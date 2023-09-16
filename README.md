@@ -80,6 +80,21 @@ ZITADEL_DEFAULTINSTANCE_SMTPCONFIGURATION_FROM=
 ZITADEL_DEFAULTINSTANCE_SMTPCONFIGURATION_FROMNAME=
 ```
 
+## Running the application
+
+```
+	Terminal 1:
+		docker compose up
+```
+
+When zitadel is done running, you can run the application with the following commands:
+
+```
+	Terminal 2:
+		air
+```
+
+TODO: Add onthego to docker-compose
 
 ## Building Your Application
 
@@ -92,6 +107,22 @@ $ go build -v
 ```
 $ go test -v ./tests/*
 ```
+
+## Authorization
+
+In order to get the authorization token, a few steps are required:
+1. Clone https://github.com/auditt98/OnTheWall
+```
+git clone https://github.com/auditt98/OnTheWall.git
+```
+
+2. Within the folder `machinekey`, theres a file called default_client_id.txt. Copy the client ID and replace ZITADEL_CLIENT_ID in the .env file
+of the cloned project, ZITADEL_ISSUER should be the same as ZITADEL_DOMAIN in the .env file of the cloned project
+
+3. `yarn install` and `yarn dev` the cloned project, complete the account creation process
+
+4. You should be redirected to /profile, a token will be displayed on the page.
+
 
 ## Contribution
 

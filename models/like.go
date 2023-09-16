@@ -3,7 +3,7 @@ package models
 import "time"
 
 type Like struct {
-	ID        uint      `gorm:"primarykey"`
+	ID        uint      `gorm:"primarykey" json:"id"`
 	CreatedAt time.Time `json:"created_at"`
 	UpdatedAt time.Time `json:"updated_at"`
 	LikerID   string    `json:"liker_id"`
