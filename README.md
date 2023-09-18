@@ -96,6 +96,9 @@ When zitadel is done running, you can run the application with the following com
 
 TODO: Add onthego to docker-compose
 
+## API Documentation
+https://documenter.getpostman.com/view/26102149/2s9YC1XuW5
+
 ## Building Your Application
 
 ```
