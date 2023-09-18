@@ -256,7 +256,7 @@ func CreateDefaultHumanUser(jwt string) (string, error) {
 			SetAuthToken(jwt).
 			SetResult(&createUserResponse).
 			SetError(&createUserError).
-			Post(os.Getenv("ZITADEL_DOMAIN") + "/v2alpha/users/human")
+			Post(os.Getenv("ZITADEL_DOMAIN") + "/v2beta/users/human")
 
 		if err != nil {
 			fmt.Println("Error creating default human user ", err.Error())
