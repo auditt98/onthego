@@ -31,8 +31,8 @@ type CreateZitadelUserRequest struct {
 }
 
 type CreateZitadelUserProfile struct {
-	FirstName string `json:"firstName"`
-	LastName  string `json:"lastName"`
+	GivenName  string `json:"givenName"`
+	FamilyName string `json:"familyName"`
 }
 
 type CreateZitadelUserEmail struct {
@@ -86,7 +86,7 @@ func GenerateJWTFromKey(filePath string, useId string) (string, error) {
 }
 
 func GenerateIntrospectionJWT() (string, error) {
-	jwt, err := GenerateJWTFromKey("./machinekey/default_api_introspection_secret.json", "client")
+	jwt, err := GenerateJWTFromKey(os.Getenv("DEFAULT_API_INTROSPECTION_SECRET_PATH"), "client")
 	if err != nil {
 		log.Fatal("Error signing token:", err)
 		return "", err
@@ -96,7 +96,7 @@ func GenerateIntrospectionJWT() (string, error) {
 
 func GenerateJWTServiceUser() (string, error) {
 	fmt.Println("Generating JWT for service user...")
-	jwt, err := GenerateJWTFromKey("./machinekey/core_service_user_key.json", "user")
+	jwt, err := GenerateJWTFromKey(os.Getenv("DEFAULT_SU_KEY_PATH"), "user")
 	if err != nil {
 		log.Fatal("Error signing token:", err)
 		return "", err
@@ -130,7 +130,7 @@ func GenerateJWTServiceUser() (string, error) {
 }
 
 func GenerateJWTFromKeyFile() (string, error) {
-	filePath := "./machinekey/core_service_user_key.json"
+	filePath := os.Getenv("DEFAULT_SU_KEY_PATH")
 	// Read the JSON file
 	fileContent, err := ioutil.ReadFile(filePath)
 	if err != nil {
@@ -243,8 +243,8 @@ func CreateDefaultHumanUser(jwt string) (string, error) {
 		if usernameEnv != "" {
 			userRequest.Username = usernameEnv
 		}
-		userRequest.Profile.FirstName = "Core"
-		userRequest.Profile.LastName = "Human User"
+		userRequest.Profile.GivenName = "Core"
+		userRequest.Profile.FamilyName = "Human User"
 		userRequest.Email.Email = userEmailEnv
 		userRequest.Email.IsVerified = true
 		userRequest.Password.Password = passwordEnv
@@ -315,7 +315,7 @@ func VerifySecret(clientId, secret string) bool {
 
 	var apiResponse SecretAPIResponse
 
-	jsonData, err := ioutil.ReadFile("./machinekey/default_api_secret.json")
+	jsonData, err := ioutil.ReadFile(os.Getenv("DEFAULT_API_SECRET_PATH"))
 	if err != nil {
 		fmt.Println("Error:", err)
 		return false

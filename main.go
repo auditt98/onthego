@@ -104,7 +104,7 @@ func InitZitadel() {
 		return
 	}
 
-	err = ioutil.WriteFile("./machinekey/default_client_id.txt", []byte(oidcResponse.ClientId), 0644)
+	err = ioutil.WriteFile(os.Getenv("DEFAULT_CLIENT_ID_PATH"), []byte(oidcResponse.ClientId), 0644)
 
 	createAPIResponse, e := zitadel.CreateAPIApp(k, defaultProjectId, "OnTheWall_API")
 	if e != nil {
@@ -116,7 +116,7 @@ func InitZitadel() {
 		return
 	}
 
-	err = ioutil.WriteFile("./machinekey/default_api_secret.json", jsonData, 0644)
+	err = ioutil.WriteFile(os.Getenv("DEFAULT_API_SECRET_PATH"), jsonData, 0644)
 	if err != nil {
 		fmt.Println("Error:", err)
 		return
@@ -133,7 +133,7 @@ func InitZitadel() {
 		return
 	}
 	decodedString := string(decodedBytes)
-	err = ioutil.WriteFile("./machinekey/default_api_introspection_secret.json", []byte(decodedString), 0644)
+	err = ioutil.WriteFile(os.Getenv("DEFAULT_API_INTROSPECTION_SECRET_PATH"), []byte(decodedString), 0644)
 	actionId := zitadel.AddDefaultUserGrantAction(k, "", defaultProjectId)
 	if actionId == "" {
 		return

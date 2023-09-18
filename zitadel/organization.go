@@ -94,7 +94,7 @@ func CreateAction(jwt, orgId, name, script string, allowedToFail bool) (string, 
 }
 
 func ReadDefaultClientID() string {
-	str, err := ioutil.ReadFile("./machinekey/default_client_id.txt")
+	str, err := ioutil.ReadFile(os.Getenv("DEFAULT_CLIENT_ID_PATH"))
 	if err != nil {
 		fmt.Println("Error:", err)
 		return ""
@@ -106,7 +106,7 @@ func ReadDefaultAPISecret() *SecretAPIResponse {
 	// read secret from file
 
 	var apiResponse SecretAPIResponse
-	jsonData, err := ioutil.ReadFile("./machinekey/default_api_secret.json")
+	jsonData, err := ioutil.ReadFile(os.Getenv("DEFAULT_API_SECRET_PATH"))
 
 	if err != nil {
 		fmt.Println("Error:", err)
