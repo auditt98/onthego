@@ -5,7 +5,6 @@ import (
 
 	"github.com/auditt98/onthego/db"
 	"github.com/auditt98/onthego/models"
-	"github.com/auditt98/onthego/types"
 	validatorsV1 "github.com/auditt98/onthego/validators/v1"
 	"github.com/auditt98/onthego/zitadel"
 	"github.com/gin-gonic/gin"
@@ -46,7 +45,7 @@ func (ctrl UserHandlerV1) AddUserFromIdP(c *gin.Context) {
 }
 
 func (ctrl UserHandlerV1) GetDefaultClientId(c *gin.Context) {
-	response := zitadel.ReadDefaultClientID()
-	c.JSON(http.StatusOK, types.SuccessResponse{Data: response})
+	// response := zitadel.ReadDefaultClientID()
+	// c.JSON(http.StatusOK, types.SuccessResponse{Data: response})
 	return
 }

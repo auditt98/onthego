@@ -17,20 +17,20 @@ func PresignedUrlValidator() gin.HandlerFunc {
 		expires := c.DefaultQuery("expires", "")
 		signature := c.DefaultQuery("signature", "")
 		if filePath == "" || expires == "" || signature == "" {
-			c.JSON(http.StatusBadRequest, types.Error{Code: http.StatusBadRequest, Message: "Invalid presigned URL"})
+			c.JSON(http.StatusBadRequest, types.Response{Code: http.StatusBadRequest, Message: "Invalid presigned URL"})
 			c.Abort()
 			return
 		}
 		// Validate the presigned URL
 		expiresTime, err := strconv.ParseInt(expires, 10, 64)
 		if err != nil {
-			c.JSON(http.StatusBadRequest, types.Error{Code: http.StatusBadRequest, Message: "Invalid presigned URL"})
+			c.JSON(http.StatusBadRequest, types.Response{Code: http.StatusBadRequest, Message: "Invalid presigned URL"})
 			c.Abort()
 			return
 		}
 		currentTime := time.Now().Unix()
 		if expiresTime <= currentTime {
-			c.JSON(http.StatusBadRequest, types.Error{Code: http.StatusBadRequest, Message: "Invalid presigned URL: expires timestamp has expired"})
+			c.JSON(http.StatusBadRequest, types.Response{Code: http.StatusBadRequest, Message: "Invalid presigned URL: expires timestamp has expired"})
 			c.Abort()
 			return
 		}
@@ -38,12 +38,12 @@ func PresignedUrlValidator() gin.HandlerFunc {
 		filePath = filePath[1:]
 		generatedSignature := utils.CalculateSignature(filePath, os.Getenv("SIGNED_URL_SECRET"), expiresTime)
 		if generatedSignature != signature {
-			c.JSON(http.StatusBadRequest, types.Error{Code: http.StatusBadRequest, Message: "Invalid presigned URL: signature does not match"})
+			c.JSON(http.StatusBadRequest, types.Response{Code: http.StatusBadRequest, Message: "Invalid presigned URL: signature does not match"})
 			c.Abort()
 			return
 		}
 		if _, err := os.Stat(filePath); os.IsNotExist(err) {
-			c.JSON(http.StatusBadRequest, types.Error{Code: http.StatusBadRequest, Message: "File not found"})
+			c.JSON(http.StatusBadRequest, types.Response{Code: http.StatusBadRequest, Message: "File not found"})
 			c.Abort()
 			return
 		}

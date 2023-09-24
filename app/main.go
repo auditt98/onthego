@@ -12,6 +12,7 @@ import (
 	"github.com/auditt98/onthego/db"
 	hv1 "github.com/auditt98/onthego/handlers/v1"
 	"github.com/auditt98/onthego/middlewares"
+	"github.com/auditt98/onthego/routes"
 	"github.com/auditt98/onthego/zitadel"
 	"github.com/gin-gonic/gin"
 	"github.com/joho/godotenv"
@@ -153,43 +154,21 @@ func main() {
 	db.InitRedis(1)
 	boot := rkboot.NewBoot()
 	entry := rkgin.GetGinEntry("ginboilerplate")
-	InitZitadel()
+	// InitZitadel()
 
 	public := entry.Router.Group("/api/public")
 	{
-		file := hv1.FileHandlerV1{}
-		if os.Getenv("UPLOAD_DRIVER") == "local" {
-			public.GET("/files/*file_path", middlewares.PresignedUrlValidator(), file.GetFile)
-		}
+		// file := hv1.FileHandlerV1{}
+		// if os.Getenv("UPLOAD_DRIVER") == "local" {
+		// 	public.GET("/files/*file_path", middlewares.PresignedUrlValidator(), file.GetFile)
+		// }
 		user := hv1.UserHandlerV1{}
 		public.POST("/idp/import", user.AddUserFromIdP)
 		public.GET("/default_client_id", user.GetDefaultClientId)
 	}
 	v1 := entry.Router.Group("/api/v1").Use(middlewares.TokenIntrospectionMiddleware())
 	{
-		user := hv1.UserHandlerV1{}
-		v1.POST("/idp/import", user.AddUserFromIdP)
-		album := hv1.AlbumHandlerV1{}
-		v1.POST("/albums/search", album.Search)
-		v1.POST("/albums", album.CreateAlbum)
-		v1.PUT("/albums/:album_id", album.UpdateAlbum)
-
-		v1.POST("/albums/:album_id/photos", album.AddPhotos)
-		v1.POST("/albums/:album_id/users", album.AddUser)
-		v1.DELETE("/albums/:album_id/users/:user_id", album.RemoveUser)
-
-		like := hv1.LikeHandlerV1{}
-		v1.POST("/likes", like.Like)
-
-		photo := hv1.PhotoHandlerV1{}
-		v1.POST("/photos/search", photo.Search)
-		v1.DELETE("/photos/:photo_id", photo.Delete)
-		v1.PUT("/photos/:photo_id", photo.Update)
-
-		comment := hv1.CommentHandlerV1{}
-		v1.POST("/comments", comment.Comment)
-		v1.PUT("/comments/:comment_id", comment.UpdateComment)
-		v1.DELETE("/comments/:comment_id", comment.DeleteComment)
+		routes.V1Router(v1)
 	}
 	// logger := rkentry.GlobalAppCtx.GetLoggerEntry("my-logger")
 	boot.Bootstrap(context.TODO())
