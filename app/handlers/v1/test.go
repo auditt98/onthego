@@ -1,7 +1,9 @@
 package handlers
 
 import (
+	"fmt"
 	"net/http"
+	"os"
 
 	"github.com/auditt98/onthego/utils"
 	"github.com/gin-gonic/gin"
@@ -10,7 +12,8 @@ import (
 type TestHandler struct{}
 
 func (ctrl TestHandler) TestPublic(c *gin.Context) {
-	utils.SuccessResponse(c, "Hello World")
+	fmt.Println("~~~~~" + os.Getenv("HELLO_WORLD"))
+	utils.SuccessResponse(c, os.Getenv("HELLO_WORLD"))
 	return
 }
 

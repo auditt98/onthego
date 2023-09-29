@@ -75,5 +75,20 @@ services:
       - "./machinekey:/machinekey"
     # command: /bin/bash -c "until [ \"\$(curl -s -o /dev/null -w ''%{http_code}'' http://host.docker.internal:8080/debug/ready)\" == \"200\" ]; do echo 'Waiting for service to be ready...'; sleep 5; done && sleep 20 && ./main"
 
+  vault:
+    image: hashicorp/vault:latest
+    container_name: vault
+    networks:
+      - "zitadel"
+    ports:
+      - "8200:8200"
+    environment:
+      VAULT_DEV_ROOT_TOKEN_ID: "root-token"
+    cap_add:
+      - IPC_LOCK
+    volumes:
+      - /vault/data
+    command: ["server", "-dev", "-dev-root-token-id=root-token"]
+
 networks:
   zitadel:

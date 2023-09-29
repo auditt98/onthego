@@ -11,7 +11,6 @@ import (
 
 	"github.com/auditt98/onthego/db"
 	hv1 "github.com/auditt98/onthego/handlers/v1"
-	"github.com/auditt98/onthego/middlewares"
 	"github.com/auditt98/onthego/routes"
 	"github.com/auditt98/onthego/zitadel"
 	"github.com/gin-gonic/gin"
@@ -166,7 +165,7 @@ func main() {
 		public.POST("/idp/import", user.AddUserFromIdP)
 		public.GET("/default_client_id", user.GetDefaultClientId)
 	}
-	v1 := entry.Router.Group("/api/v1").Use(middlewares.TokenIntrospectionMiddleware())
+	v1 := entry.Router.Group("/api/v1") //.Use(middlewares.TokenIntrospectionMiddleware())
 	{
 		routes.V1Router(v1)
 	}
