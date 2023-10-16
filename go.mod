@@ -13,7 +13,7 @@ require (
 	github.com/survivorbat/gorm-deep-filtering v0.0.8
 	github.com/survivorbat/gorm-query-convert v0.0.1
 	golang.org/x/exp v0.0.0-20230905200255-921286631fa9
-	gorm.io/driver/mysql v1.5.1
+	gorm.io/driver/mysql v1.5.2
 	gorm.io/driver/postgres v1.5.2
 	gorm.io/driver/sqlserver v1.5.1
 	gorm.io/gorm v1.25.2
